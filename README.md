@@ -1,0 +1,4 @@
+yal
+===
+
+Yet Another Logger
