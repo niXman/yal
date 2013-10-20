@@ -248,6 +248,10 @@ struct session_manager::impl {
 	using session_weak_ptr = std::weak_ptr<session>;
 	using sessions_list = std::list<session_weak_ptr>;
 
+	impl()
+		:root_path(".")
+	{}
+
 	std::string root_path;
 	sessions_list sessions;
 }; // struct impl

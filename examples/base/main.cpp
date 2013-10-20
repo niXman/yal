@@ -6,7 +6,6 @@
 /***************************************************************************/
 
 int main() {
-	yal::logger::root_path(".");
 	auto test1 = yal::logger::create("test1", 1024);
 	auto test2 = yal::logger::create("test2", 1024);
 	auto test3 = yal::logger::create("test3", 1024);
