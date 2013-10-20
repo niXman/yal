@@ -77,3 +77,14 @@ YAL_INFO(session1, "%d-%s-%d", 1, "2", 3);
 3. `YAL_SET_BUFFER(log, size)` - устанавливает размер буфера ввода-вывода. (см. setvbuf())
 4. `YAL_SET_UNBUFFERED(log)` - указывает не использовать буферизацию ввода-вывода.
 5. `YAL_TO_TERM(log, flag, pref)` - указывает(если flag == true) производить вывод и на терминал. `pref` - префикс, используемый для идентифицирования вывода(терминал-то у нас один).
+
+Еще один макрос являющийся частью приватной реализации - `YAL_MESSAGE_AS_STRING(...)`. Принимает форматную строку и произвольное кол-во аргументов. Возвращает `std::string`.
+```cpp
+std::cout << YAL_MESSAGE_AS_STRING("message") << std::endl;
+std::cout << YAL_MESSAGE_AS_STRING("%s-%02d", "message", 2) << std::endl;
+```
+Вывод:
+```
+[main.cpp:9][int main()]: message
+[main.cpp:9][int main()]: message-02
+```
