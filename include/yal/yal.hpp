@@ -258,20 +258,20 @@ private:
 #  ifndef YAL_DISABLE_INFO
 #     define YAL_INFO(log, ...) \
 			log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info)
-#  else
-#     define YAL_INFO(log, ...)
-#  endif
+#	else
+#		define YAL_INFO(log, ...)
+#	endif
 #else // YAL_DISABLE_LOGGING == true
-#  define YAL_FLUSH(log)
-#  define YAL_SET_LEVEL(log, lvl)
+#	define YAL_FLUSH(log)
+#	define YAL_SET_LEVEL(log, lvl)
 #	define YAL_SET_BUFFER(log, size)
 #	define YAL_SET_UNBUFFERED(log)
-#  define YAL_TO_TERM(log, flag, pref)
+#	define YAL_TO_TERM(log, flag, pref)
 
-#  define YAL_ERROR(log, ...)
-#  define YAL_WARNING(log, ...)
-#  define YAL_DEBUG(log, ...)
-#  define YAL_INFO(log, ...)
+#	define YAL_ERROR(log, ...)
+#	define YAL_WARNING(log, ...)
+#	define YAL_DEBUG(log, ...)
+#	define YAL_INFO(log, ...)
 #endif // YAL_DISABLE_LOGGING
 
 /***************************************************************************/
