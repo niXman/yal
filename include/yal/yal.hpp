@@ -81,8 +81,6 @@ private:
 struct logger: private boost::noncopyable {
 	using logger_session_manager_ptr = std::shared_ptr<detail::session_manager>;
 
-	static logger_session_manager_ptr instance();
-
 	static void root_path(const std::string &path);
 	static const std::string& root_path();
 
@@ -91,10 +89,12 @@ struct logger: private boost::noncopyable {
 	static void flush();
 
 private:
+	static logger_session_manager_ptr instance();
+	static void init();
+
 	static logger_session_manager_ptr object;
 	static std::once_flag flag;
 
-	static void init();
 }; // struct logger
 
 /***************************************************************************/
