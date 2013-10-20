@@ -11,7 +11,7 @@ int main() {
 	auto test2 = yal::logger::create("test2", 1024);
 	auto test3 = yal::logger::create("test3", 1024);
 	auto test4 = yal::logger::create("test4", 1024);
-//	YAL_TO_TERM(s1, true, "term1");
+	//YAL_TO_TERM(test1, true, "term1");
 	for ( auto idx = 0ul; idx < 1024ul*1024ul*100ul; ++idx ) {
 		YAL_INFO(test1, "%016d -> %016d", idx, idx);
 		YAL_DEBUG(test1, "%016d -> %016d", idx, idx);

@@ -154,7 +154,6 @@ struct session::impl {
 		if ( lvl < level )
 			return;
 
-		auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 		const char *levelstr = (
 			lvl == yal::debug ? "debug  "
 				:lvl == yal::error ? "error  "
@@ -163,6 +162,7 @@ struct session::impl {
 							: 0
 		);
 		if ( toterm ) {
+			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 			if ( prefix.empty() ) {
 				std::fprintf(termlog, "[%s][%s]%s\n", date_str(), levelstr, data.c_str());
 			} else {
