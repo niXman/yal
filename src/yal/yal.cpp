@@ -270,6 +270,7 @@ session_manager::~session_manager() {
 /***************************************************************************/
 
 const std::string &session_manager::root_path() const { return pimpl->root_path; }
+
 void session_manager::root_path(const std::string &path) {
 	if ( !boost::filesystem::exists(path) )
 		boost::filesystem::create_directories(path);
