@@ -73,13 +73,7 @@ struct session::impl {
 	}
 
 	static const char* date_str() {
-#if defined(__linux__)
-		static const char *fmtstring = "%d.%m.%Y-%H:%M:%S";
-#elif defined(_WIN32)
 		static const char *fmtstring = "%d.%m.%Y-%H.%M.%S";
-#else
-#	error "bad OS!"
-#endif
 
 		static char buf[32];
 		std::time_t raw_time;
@@ -151,7 +145,7 @@ struct session::impl {
 		level = lvl;
 	}
 
-	void write(const std::string &data, const yal::level lvl) {
+	void write(const char *fileline, const char *func, const std::string &data, const yal::level lvl) {
 		const char *levelstr = (
 			lvl == yal::debug ? "debug  "
 				:lvl == yal::error ? "error  "
@@ -162,14 +156,14 @@ struct session::impl {
 		if ( toterm ) {
 			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 			if ( prefix.empty() ) {
-				std::fprintf(termlog, "[%s][%s]%s\n", date_str(), levelstr, data.c_str());
+				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", date_str(), levelstr, fileline, func, data.c_str());
 			} else {
-				std::fprintf(termlog, "<%s>[%s][%s]%s\n", prefix.c_str(), date_str(), levelstr, data.c_str());
+				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), date_str(), levelstr, fileline, func, data.c_str());
 			}
 			std::fflush(termlog);
 		}
 
-		const int writen = std::fprintf(file, "[%s][%s]%s\n", date_str(), levelstr, data.c_str());
+		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", date_str(), levelstr, fileline, func, data.c_str());
 
 		if ( writen < 0 ) {
 			int error = errno;
@@ -215,6 +209,8 @@ session::~session()
 
 const std::string &session::name() const { return pimpl->name; }
 
+const char *session::date_str() { return session::impl::date_str(); }
+
 /***************************************************************************/
 
 void session::set_buffer(const std::size_t size) {
@@ -231,9 +227,9 @@ void session::set_level(const level lvl) {
 
 level session::get_level() const { return pimpl->level; }
 
-void session::write(const std::string &data, const level lvl) {
+void session::write(const char *fileline, const char *func, const std::string &data, const level lvl) {
 	if ( data.empty() ) return;
-	pimpl->write(data, lvl);
+	pimpl->write(fileline, func, data, lvl);
 }
 
 void session::flush() {

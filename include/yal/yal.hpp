@@ -31,13 +31,16 @@ struct session: private boost::noncopyable {
 	~session();
 
 	const std::string& name() const;
+
+	static const char* date_str();
+
 	void set_buffer(const std::size_t size);
 	void to_term(const bool ok, const std::string &pref);
 
 	void set_level(const level lvl);
 	yal::level get_level() const;
 
-	void write(const std::string &data, const level lvl);
+	void write(const char *fileline, const char *func, const std::string &data, const level lvl);
 	void flush();
 
 private:
@@ -106,12 +109,12 @@ private:
 
 /***************************************************************************/
 
+#define YAL_SEPARATOR %
+
 #define YAL_DEBUG_LOG_ARG_LIST(...) \
 	BOOST_PP_CAT(YAL_DEBUG_LOG_ARG_LIST, YAL_VA_MORE1_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
 #define YAL_DEBUG_LOG_ARG_LIST0(...)
-
-#define YAL_SEPARATOR %
 
 #define YAL_DEBUG_LOG_ARG_LIST1(F_, ...) \
 	YAL_SEPARATOR YAL_GET(__VA_ARGS__)
@@ -218,10 +221,7 @@ private:
  */
 
 #define YAL_MESSAGE_AS_STRING(...) \
-	(boost::format( \
-		"[" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%s]: " \
-		YAL_DEBUG_LOG_FORMAT(__VA_ARGS__,) \
-	) % __PRETTY_FUNCTION__ YAL_DEBUG_LOG_ARG_LIST(__VA_ARGS__)).str()
+	(boost::format(YAL_DEBUG_LOG_FORMAT(__VA_ARGS__,)) YAL_DEBUG_LOG_ARG_LIST(__VA_ARGS__)).str()
 
 /***************************************************************************/
 
@@ -241,7 +241,11 @@ private:
 #		define YAL_ERROR(log, ...) \
 			::yal::level::error < log->get_level() \
 				? static_cast<void>(0) \
-				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error)
+				: log->write( \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,__PRETTY_FUNCTION__ \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
+				)
 #	else
 #     define YAL_ERROR(log, ...)
 #  endif
@@ -250,7 +254,11 @@ private:
 #     define YAL_WARNING(log, ...) \
 			::yal::level::warning < log->get_level() \
 				? static_cast<void>(0) \
-				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning)
+				: log->write( \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,__PRETTY_FUNCTION__ \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
+				)
 #  else
 #     define YAL_WARNING(log, ...)
 #  endif
@@ -259,7 +267,11 @@ private:
 #     define YAL_DEBUG(log, ...) \
 			::yal::level::debug < log->get_level() \
 				? static_cast<void>(0) \
-				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug)
+				: log->write( \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,__PRETTY_FUNCTION__ \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
+				)
 #  else
 #     define YAL_DEBUG(log, ...)
 #  endif
@@ -268,7 +280,11 @@ private:
 #     define YAL_INFO(log, ...) \
 			::yal::level::info < log->get_level() \
 				? static_cast<void>(0) \
-				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info)
+				: log->write( \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,__PRETTY_FUNCTION__ \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
+				)
 #	else
 #		define YAL_INFO(log, ...)
 #	endif
