@@ -3,7 +3,6 @@
 #define _yal__yal_hpp
 
 #include <memory>
-#include <mutex>
 
 #include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
