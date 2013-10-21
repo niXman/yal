@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cerrno>
 
+#include <mutex>
 #include <algorithm>
 
 namespace yal {
@@ -249,9 +250,12 @@ struct session_manager::impl {
 	using sessions_list = std::list<session_weak_ptr>;
 
 	impl()
-		:root_path(".")
+		:mutex()
+		,root_path(".")
+		,sessions()
 	{}
 
+	std::mutex mutex;
 	std::string root_path;
 	sessions_list sessions;
 }; // struct impl
@@ -269,9 +273,15 @@ session_manager::~session_manager() {
 
 /***************************************************************************/
 
-const std::string &session_manager::root_path() const { return pimpl->root_path; }
+const std::string &session_manager::root_path() const {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
+	return pimpl->root_path;
+}
 
 void session_manager::root_path(const std::string &path) {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
 	if ( !boost::filesystem::exists(path) )
 		boost::filesystem::create_directories(path);
 
@@ -279,18 +289,12 @@ void session_manager::root_path(const std::string &path) {
 }
 
 yal::session session_manager::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
 	if ( !name.empty() && name[0] == '/' )
 		throw std::runtime_error("yal: session name cannot be a full path name");
 	if ( !shift_after )
 		throw std::runtime_error("yal: shift_after can be 1 or greater");
-
-	const auto pos = name.find_last_of('/');
-	if ( pos != std::string::npos ) {
-		const std::string &path = pimpl->root_path+"/"+name.substr(0, pos);
-		std::cout << "path:" << path << std::endl;
-		if ( !boost::filesystem::exists(path) )
-			boost::filesystem::create_directories(path);
-	}
 
 	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
 		if ( auto session = it->lock() ) {
@@ -301,6 +305,14 @@ yal::session session_manager::create(const std::string &name, std::size_t volume
 		}
 	}
 
+	const auto pos = name.find_last_of('/');
+	if ( pos != std::string::npos ) {
+		const std::string &path = pimpl->root_path+"/"+name.substr(0, pos);
+		std::cout << "path:" << path << std::endl;
+		if ( !boost::filesystem::exists(path) )
+			boost::filesystem::create_directories(path);
+	}
+
 	yal::session session(new detail::session(pimpl->root_path, name, volume_size, shift_after));
 	pimpl->sessions.push_back(session);
 
@@ -308,6 +320,8 @@ yal::session session_manager::create(const std::string &name, std::size_t volume
 }
 
 void session_manager::flush() {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
 	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
 		if ( auto session = it->lock() ) {
 			session->flush();
