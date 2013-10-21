@@ -33,7 +33,10 @@ struct session: private boost::noncopyable {
 	const std::string& name() const;
 	void set_buffer(const std::size_t size);
 	void to_term(const bool ok, const std::string &pref);
+
 	void set_level(const level lvl);
+	yal::level get_level() const;
+
 	void write(const std::string &data, const level lvl);
 	void flush();
 
@@ -236,28 +239,36 @@ private:
 
 #  ifndef YAL_DISABLE_ERROR
 #		define YAL_ERROR(log, ...) \
-			log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error)
+			::yal::level::error < log->get_level() \
+				? static_cast<void>(0) \
+				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error)
 #	else
 #     define YAL_ERROR(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_WARNING
 #     define YAL_WARNING(log, ...) \
-			log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning)
+			::yal::level::warning < log->get_level() \
+				? static_cast<void>(0) \
+				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning)
 #  else
 #     define YAL_WARNING(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_DEBUG
 #     define YAL_DEBUG(log, ...) \
-			log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug)
+			::yal::level::debug < log->get_level() \
+				? static_cast<void>(0) \
+				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug)
 #  else
 #     define YAL_DEBUG(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_INFO
 #     define YAL_INFO(log, ...) \
-			log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info)
+			::yal::level::info < log->get_level() \
+				? static_cast<void>(0) \
+				: log->write(YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info)
 #	else
 #		define YAL_INFO(log, ...)
 #	endif

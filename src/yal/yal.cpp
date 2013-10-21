@@ -152,9 +152,6 @@ struct session::impl {
 	}
 
 	void write(const std::string &data, const yal::level lvl) {
-		if ( lvl < level )
-			return;
-
 		const char *levelstr = (
 			lvl == yal::debug ? "debug  "
 				:lvl == yal::error ? "error  "
@@ -231,6 +228,8 @@ void session::to_term(const bool ok, const std::string &pref) {
 void session::set_level(const level lvl) {
 	pimpl->set_level(lvl);
 }
+
+level session::get_level() const { return pimpl->level; }
 
 void session::write(const std::string &data, const level lvl) {
 	if ( data.empty() ) return;
