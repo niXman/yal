@@ -7,7 +7,6 @@
 #include <cctype>
 #include <cerrno>
 
-#include <mutex>
 #include <algorithm>
 
 namespace yal {

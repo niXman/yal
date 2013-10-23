@@ -3,6 +3,7 @@
 #define _yal__yal_hpp
 
 #include <memory>
+#include <mutex>
 
 #include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
@@ -225,79 +226,97 @@ private:
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_LOGGING
-#	define YAL_FLUSH(log) \
-		log->flush()
-#  define YAL_SET_LEVEL(log, lvl) \
-		log->set_level((lvl))
-#	define YAL_SET_BUFFER(log, size) \
-		log->set_buffer((size))
-#	define YAL_SET_UNBUFFERED(log) \
-		log->set_buffer(0)
-#  define YAL_TO_TERM(log, flag, pref) \
-		log->to_term((flag), (pref))
+#	define YAL_SET_ROOT_PATH(var) \
+		::yal::logger::root_path(var);
+#	define YAL_GET_ROOT_PATH(var) \
+		const std::string &var = ::yal::logger::root_path();
+#	define YAL_CREATE(var, ...) \
+		::yal::session var = ::yal::logger::create(__VA_ARGS__);
+#	define YAL_FLUSH() \
+		::yal::logger::flush();
+
+#	define YAL_SESSION_FLUSH(log) \
+		log->flush();
+#  define YAL_SESSION_SET_LEVEL(log, lvl) \
+		log->set_level((lvl));
+#	define YAL_SESSION_SET_BUFFER(log, size) \
+		log->set_buffer((size));
+#	define YAL_SESSION_SET_UNBUFFERED(log) \
+		log->set_buffer(0);
+#  define YAL_SESSION_TO_TERM(log, flag, pref) \
+		log->to_term((flag), (pref));
 
 #  ifndef YAL_DISABLE_ERROR
-#		define YAL_ERROR(log, ...) \
+#		define YAL_LOG_ERROR(log, ...) ( \
 			::yal::level::error < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
-				)
+				) \
+			);
 #	else
-#     define YAL_ERROR(log, ...)
+#     define YAL_LOG_ERROR(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_WARNING
-#     define YAL_WARNING(log, ...) \
+#     define YAL_LOG_WARNING(log, ...) ( \
 			::yal::level::warning < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
-				)
+				) \
+			);
 #  else
-#     define YAL_WARNING(log, ...)
+#     define YAL_LOG_WARNING(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_DEBUG
-#     define YAL_DEBUG(log, ...) \
+#     define YAL_LOG_DEBUG(log, ...) ( \
 			::yal::level::debug < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
-				)
+				) \
+			);
 #  else
-#     define YAL_DEBUG(log, ...)
+#     define YAL_LOG_DEBUG(log, ...)
 #  endif
 
 #  ifndef YAL_DISABLE_INFO
-#     define YAL_INFO(log, ...) \
+#     define YAL_LOG_INFO(log, ...) ( \
 			::yal::level::info < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
-				)
+				) \
+			);
 #	else
-#		define YAL_INFO(log, ...)
+#		define YAL_LOG_INFO(log, ...)
 #	endif
 #else // YAL_DISABLE_LOGGING == true
-#	define YAL_FLUSH(log)
-#	define YAL_SET_LEVEL(log, lvl)
-#	define YAL_SET_BUFFER(log, size)
-#	define YAL_SET_UNBUFFERED(log)
-#	define YAL_TO_TERM(log, flag, pref)
+#	define YAL_SET_ROOT_PATH(var)
+#	define YAL_GET_ROOT_PATH(var)
+#	define YAL_CREATE(var, ...)
+#	define YAL_FLUSH()
 
-#	define YAL_ERROR(log, ...)
-#	define YAL_WARNING(log, ...)
-#	define YAL_DEBUG(log, ...)
-#	define YAL_INFO(log, ...)
+#	define YAL_SESSION_FLUSH(log)
+#  define YAL_SESSION_SET_LEVEL(log, lvl)
+#	define YAL_SESSION_SET_BUFFER(log, size)
+#	define YAL_SESSION_SET_UNBUFFERED(log)
+#  define YAL_SESSION_TO_TERM(log, flag, pref)
+
+#	define YAL_LOG_ERROR(log, ...)
+#	define YAL_LOG_WARNING(log, ...)
+#	define YAL_LOG_DEBUG(log, ...)
+#	define YAL_LOG_INFO(log, ...)
 #endif // YAL_DISABLE_LOGGING
 
 /***************************************************************************/

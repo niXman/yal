@@ -6,6 +6,9 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += \
 	-std=c++11
 
+DEFINES += \
+	YAL_DISABLE_LOGGING
+
 INCLUDEPATH += \
 	../../include
 
