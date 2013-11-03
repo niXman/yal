@@ -6,12 +6,12 @@
 /***************************************************************************/
 
 int main() {
-	YAL_CREATE(test1, "test1", 1024)
-	YAL_CREATE(test2, "test2", 1024)
-	YAL_CREATE(test3, "test3", 1024)
-	YAL_CREATE(test4, "test4", 1024)
+	YAL_CREATE(test1, "test1", 1024*10)
+	YAL_CREATE(test2, "test2", 1024*10)
+	YAL_CREATE(test3, "test3", 1024*10)
+	YAL_CREATE(test4, "test4", 1024*10)
 //	YAL_SESSION_TO_TERM(test1, true, "term1")
-	for ( auto idx = 0ul; idx < 1024ul*1024ul*100ul; ++idx ) {
+	for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*1024ul; ++idx, idx2 += 2 ) {
 		YAL_LOG_INFO	(test1, "%1% -> %2% -> %1%", idx, (idx+1))
 		YAL_LOG_DEBUG	(test1, "%1% -> %2% -> %1%", idx, (idx+1))
 		YAL_LOG_WARNING(test1, "%1% -> %2% -> %1%", idx, (idx+1))
@@ -35,6 +35,11 @@ int main() {
 		YAL_LOG_WARNING(test4, "%016d -> %016d", idx, idx)
 		YAL_LOG_ERROR	(test4, "%016d -> %016d", idx, idx)
 		YAL_SESSION_FLUSH(test4)
+
+		YAL_GLOBAL_LOG_INFO		("%016d -> %016d", idx2, idx2)
+		YAL_GLOBAL_LOG_DEBUG		("%016d -> %016d", idx2, idx2)
+		YAL_GLOBAL_LOG_WARNING	("%016d -> %016d", idx2, idx2)
+		YAL_GLOBAL_LOG_ERROR		("%016d -> %016d", idx2, idx2)
 	}
 
 	YAL_FLUSH()

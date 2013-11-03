@@ -27,12 +27,12 @@ namespace detail {
 /***************************************************************************/
 
 struct session: private boost::noncopyable {
+	static const char* date_str();
+
 	session(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after);
 	~session();
 
 	const std::string& name() const;
-
-	static const char* date_str();
 
 	void set_buffer(const std::size_t size);
 	void to_term(const bool ok, const std::string &pref);
@@ -40,7 +40,7 @@ struct session: private boost::noncopyable {
 	void set_level(const level lvl);
 	yal::level get_level() const;
 
-	void write(const char *fileline, const char *func, const std::string &data, const level lvl);
+	void write(const char *fileline, const char *func, const std::string &data, level lvl);
 	void flush();
 
 private:
@@ -50,24 +50,14 @@ private:
 
 /***************************************************************************/
 
-} // ns detail
-
-/***************************************************************************/
-
-using session = std::shared_ptr<detail::session>;
-
-/***************************************************************************/
-
-namespace detail {
-
-/***************************************************************************/
-
 struct session_manager: private boost::noncopyable {
 	const std::string& root_path() const;
 	void root_path(const std::string& path);
 
-	yal::session create(const std::string &name, std::size_t volume_size, std::size_t shift_after);
+	std::shared_ptr<session>
+	create(const std::string &name, std::size_t volume_size, std::size_t shift_after);
 
+	void write(const char *fileline, const char *func, const std::string &data, level lvl);
 	void flush();
 
 	session_manager();
@@ -84,6 +74,8 @@ private:
 
 /***************************************************************************/
 
+using session = std::shared_ptr<detail::session>;
+
 struct logger: private boost::noncopyable {
 	using logger_session_manager_ptr = std::shared_ptr<detail::session_manager>;
 
@@ -92,6 +84,7 @@ struct logger: private boost::noncopyable {
 
 	static yal::session create(const std::string &name, std::size_t volume_size = UINT_MAX, std::size_t shift_after = 9999);
 
+	static void write(const char *fileline, const char *func, const std::string &data, level lvl);
 	static void flush();
 
 private:
@@ -258,6 +251,12 @@ private:
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
 				) \
 			);
+#		define YAL_GLOBAL_LOG_ERROR(...) \
+			::yal::logger::write( \
+				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+			  ,__PRETTY_FUNCTION__ \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
+			);
 #	else
 #     define YAL_LOG_ERROR(log, ...)
 #  endif
@@ -272,6 +271,13 @@ private:
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
 				) \
 			);
+#		define YAL_GLOBAL_LOG_WARNING(...) \
+			::yal::logger::write( \
+				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+			  ,__PRETTY_FUNCTION__ \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
+			);
+
 #  else
 #     define YAL_LOG_WARNING(log, ...)
 #  endif
@@ -286,6 +292,12 @@ private:
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
 				) \
 			);
+#		define YAL_GLOBAL_LOG_DEBUG(...) \
+			::yal::logger::write( \
+				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+			  ,__PRETTY_FUNCTION__ \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
+			);
 #  else
 #     define YAL_LOG_DEBUG(log, ...)
 #  endif
@@ -299,6 +311,12 @@ private:
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
 				) \
+			);
+#		define YAL_GLOBAL_LOG_INFO(...) \
+			::yal::logger::write( \
+				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+			  ,__PRETTY_FUNCTION__ \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
 			);
 #	else
 #		define YAL_LOG_INFO(log, ...)

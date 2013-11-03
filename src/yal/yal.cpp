@@ -226,7 +226,7 @@ void session::set_level(const level lvl) {
 
 level session::get_level() const { return pimpl->level; }
 
-void session::write(const char *fileline, const char *func, const std::string &data, const level lvl) {
+void session::write(const char *fileline, const char *func, const std::string &data, level lvl) {
 	if ( data.empty() ) return;
 	pimpl->write(fileline, func, data, lvl);
 }
@@ -282,7 +282,8 @@ void session_manager::root_path(const std::string &path) {
 	pimpl->root_path = path;
 }
 
-yal::session session_manager::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
+std::shared_ptr<session>
+session_manager::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
 	std::lock_guard<std::mutex> lock(pimpl->mutex);
 
 	if ( !name.empty() && name[0] == '/' )
@@ -313,6 +314,24 @@ yal::session session_manager::create(const std::string &name, std::size_t volume
 	return session;
 }
 
+/***************************************************************************/
+
+void session_manager::write(const char *fileline, const char *func, const std::string &data, level lvl) {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
+	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
+		if ( auto session = it->lock() ) {
+			if ( session->get_level() >= lvl ) {
+				session->write(fileline, func, data, lvl);
+			}
+		} else {
+			pimpl->sessions.erase(it);
+		}
+	}
+}
+
+/***************************************************************************/
+
 void session_manager::flush() {
 	std::lock_guard<std::mutex> lock(pimpl->mutex);
 
@@ -340,6 +359,10 @@ const std::string &logger::root_path() { return instance()->root_path(); }
 
 session logger::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
 	return instance()->create(name, volume_size, shift_after);
+}
+
+void logger::write(const char *fileline, const char *func, const std::string &data, level lvl) {
+	instance()->write(fileline, func, data, lvl);
 }
 
 void logger::flush() { instance()->flush(); }
