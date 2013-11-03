@@ -1,4 +1,3 @@
-
 #include <yal/yal.hpp>
 
 #include <boost/filesystem.hpp>
@@ -321,7 +320,7 @@ void session_manager::write(const char *fileline, const char *func, const std::s
 
 	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
 		if ( auto session = it->lock() ) {
-			if ( session->get_level() >= lvl ) {
+			if ( lvl >= session->get_level() ) {
 				session->write(fileline, func, data, lvl);
 			}
 		} else {
