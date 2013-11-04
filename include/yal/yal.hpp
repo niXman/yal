@@ -225,8 +225,6 @@ private:
 		const std::string &var = ::yal::logger::root_path();
 #	define YAL_CREATE(var, ...) \
 		::yal::session var = ::yal::logger::create(__VA_ARGS__);
-#	define YAL_FREE(var) \
-		var.reset();
 #	define YAL_FLUSH() \
 		::yal::logger::flush();
 
@@ -325,7 +323,6 @@ private:
 #	define YAL_SET_ROOT_PATH(var)
 #	define YAL_GET_ROOT_PATH(var)
 #	define YAL_CREATE(var, ...)
-#	define YAL_FREE(var)
 #	define YAL_FLUSH()
 
 #	define YAL_SESSION_FLUSH(log)
