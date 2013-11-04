@@ -338,6 +338,10 @@ private:
 #	define YAL_LOG_WARNING(log, ...)
 #	define YAL_LOG_DEBUG(log, ...)
 #	define YAL_LOG_INFO(log, ...)
+#	define YAL_GLOBAL_LOG_ERROR(...)
+#	define YAL_GLOBAL_LOG_WARNING(...)
+#	define YAL_GLOBAL_LOG_DEBUG(...)
+#	define YAL_GLOBAL_LOG_INFO(...)
 #endif // YAL_DISABLE_LOGGING
 
 /***************************************************************************/
