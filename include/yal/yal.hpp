@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <mutex>
+#include <climits>
 
 #include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
