@@ -58,6 +58,10 @@ struct session_manager: private boost::noncopyable {
 	create(const std::string &name, std::size_t volume_size, std::size_t shift_after);
 
 	void write(const char *fileline, const char *func, const std::string &data, level lvl);
+
+	std::shared_ptr<session>
+	get(const std::string &name) const;
+
 	void flush();
 
 	session_manager();
@@ -84,7 +88,10 @@ struct logger: private boost::noncopyable {
 
 	static yal::session create(const std::string &name, std::size_t volume_size = UINT_MAX, std::size_t shift_after = 9999);
 
+	static yal::session get(const std::string &name);
+
 	static void write(const char *fileline, const char *func, const std::string &data, level lvl);
+
 	static void flush();
 
 private:
@@ -185,6 +192,10 @@ private:
 #	define YAL_FLUSH() \
 		::yal::logger::flush();
 
+#	define YAL_SESSION_GET(var, name) \
+		::yal::session var = ::yal::logger::get(name);
+#	define YAL_SESSION_EXISTS(name) \
+		(::yal::logger::get(name).get() != 0)
 #	define YAL_SESSION_FLUSH(log) \
 		log->flush();
 #  define YAL_SESSION_SET_LEVEL(log, lvl) \
@@ -282,6 +293,8 @@ private:
 #	define YAL_CREATE(var, ...)
 #	define YAL_FLUSH()
 
+#	define YAL_SESSION_GET(var, name)
+#	define YAL_SESSION_EXISTS(name)
 #	define YAL_SESSION_FLUSH(log)
 #  define YAL_SESSION_SET_LEVEL(log, lvl)
 #	define YAL_SESSION_SET_BUFFER(log, size)

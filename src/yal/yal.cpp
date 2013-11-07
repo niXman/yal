@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cerrno>
 
+#include <unordered_map>
 #include <algorithm>
 
 namespace yal {
@@ -240,7 +241,7 @@ void session::flush() {
 
 struct session_manager::impl {
 	using session_weak_ptr = std::weak_ptr<session>;
-	using sessions_list = std::list<session_weak_ptr>;
+	using sessions_map = std::unordered_map<std::string, session_weak_ptr>;
 
 	impl()
 		:mutex()
@@ -248,9 +249,21 @@ struct session_manager::impl {
 		,sessions()
 	{}
 
+	template<typename Cont, typename F>
+	static void iterate(Cont &cont, F func) {
+		for ( auto it = cont.begin(), end = cont.end(); it != end; ) {
+			if ( auto session = it->second.lock() ) {
+				func(session);
+				++it;
+			} else {
+				it = cont.erase(it);
+			}
+		}
+	}
+
 	std::mutex mutex;
 	std::string root_path;
-	sessions_list sessions;
+	sessions_map sessions;
 }; // struct impl
 
 /***************************************************************************/
@@ -290,14 +303,13 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	if ( !shift_after )
 		throw std::runtime_error("yal: shift_after can be 1 or greater");
 
-	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
-		if ( auto session = it->lock() ) {
-			if ( session->name() == name )
+	impl::iterate(
+		 pimpl->sessions
+		,[&name](yal::session s) {
+			if ( s->name() == name )
 				throw std::runtime_error("yal: session \""+name+"\" already exists");
-		} else {
-			pimpl->sessions.erase(it);
 		}
-	}
+	);
 
 	const auto pos = name.find_last_of('/');
 	if ( pos != std::string::npos ) {
@@ -308,7 +320,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	}
 
 	yal::session session(new detail::session(pimpl->root_path, name, volume_size, shift_after));
-	pimpl->sessions.push_back(session);
+	pimpl->sessions.insert({name, session});
 
 	return session;
 }
@@ -318,14 +330,25 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 void session_manager::write(const char *fileline, const char *func, const std::string &data, level lvl) {
 	std::lock_guard<std::mutex> lock(pimpl->mutex);
 
-	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
-		if ( auto session = it->lock() ) {
-			if ( lvl >= session->get_level() ) {
-				session->write(fileline, func, data, lvl);
-			}
-		} else {
-			pimpl->sessions.erase(it);
-		}
+	impl::iterate(
+		 pimpl->sessions
+		,[fileline, func, &data, lvl](yal::session s) { s->write(fileline, func, data, lvl); }
+	);
+}
+
+std::shared_ptr<session>
+session_manager::get(const std::string &name) const {
+	std::lock_guard<std::mutex> lock(pimpl->mutex);
+
+	auto it = pimpl->sessions.find(name);
+	if ( it == pimpl->sessions.end() )
+		return std::shared_ptr<session>();
+
+	if ( auto s = it->second.lock() ) {
+		return s;
+	} else {
+		pimpl->sessions.erase(it);
+		return std::shared_ptr<session>();
 	}
 }
 
@@ -334,13 +357,10 @@ void session_manager::write(const char *fileline, const char *func, const std::s
 void session_manager::flush() {
 	std::lock_guard<std::mutex> lock(pimpl->mutex);
 
-	for ( auto it = pimpl->sessions.begin(); it != pimpl->sessions.end(); ++it ) {
-		if ( auto session = it->lock() ) {
-			session->flush();
-		} else {
-			pimpl->sessions.erase(it);
-		}
-	}
+	impl::iterate(
+		 pimpl->sessions
+		,[](yal::session s) { s->flush(); }
+	);
 }
 
 /***************************************************************************/
@@ -358,6 +378,10 @@ const std::string &logger::root_path() { return instance()->root_path(); }
 
 session logger::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
 	return instance()->create(name, volume_size, shift_after);
+}
+
+yal::session logger::get(const std::string &name) {
+	return instance()->get(name);
 }
 
 void logger::write(const char *fileline, const char *func, const std::string &data, level lvl) {
