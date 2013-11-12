@@ -189,6 +189,8 @@ private:
 		const std::string &var = ::yal::logger::root_path();
 #	define YAL_CREATE(var, ...) \
 		::yal::session var = ::yal::logger::create(__VA_ARGS__);
+#	define YAL_CREATE2(...) \
+		= ::yal::logger::create(__VA_ARGS__);
 #	define YAL_FLUSH() \
 		::yal::logger::flush();
 
