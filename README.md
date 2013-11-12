@@ -16,9 +16,8 @@ struct type {
 
    yal::session session;
 };
-
-...
-
+```
+```cpp
 int main() {
    yal::session session1(YAL_CREATE2("session1"));
    yal::session session2 = YAL_CREATE2("session2");
