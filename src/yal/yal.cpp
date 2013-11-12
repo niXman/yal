@@ -314,7 +314,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	const auto pos = name.find_last_of('/');
 	if ( pos != std::string::npos ) {
 		const std::string &path = pimpl->root_path+"/"+name.substr(0, pos);
-		std::cout << "path:" << path << std::endl;
+		//std::cout << "path:" << path << std::endl;
 		if ( !boost::filesystem::exists(path) )
 			boost::filesystem::create_directories(path);
 	}
