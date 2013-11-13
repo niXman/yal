@@ -196,6 +196,8 @@ private:
 
 #	define YAL_SESSION_GET(var, name) \
 		::yal::session var = ::yal::logger::get(name);
+#	define YAL_SESSION_GET2(name) \
+		::yal::logger::get(name);
 #	define YAL_SESSION_EXISTS(name) \
 		(::yal::logger::get(name).get() != 0)
 #	define YAL_SESSION_FLUSH(log) \
@@ -293,9 +295,11 @@ private:
 #	define YAL_SET_ROOT_PATH(var)
 #	define YAL_GET_ROOT_PATH(var)
 #	define YAL_CREATE(var, ...)
+#	define YAL_CREATE2(...)
 #	define YAL_FLUSH()
 
 #	define YAL_SESSION_GET(var, name)
+#	define YAL_SESSION_GET2(name)
 #	define YAL_SESSION_EXISTS(name)
 #	define YAL_SESSION_FLUSH(log)
 #  define YAL_SESSION_SET_LEVEL(log, lvl)
