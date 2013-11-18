@@ -218,14 +218,16 @@ private:
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
-					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::error \
 				) \
 			);
 #		define YAL_GLOBAL_LOG_ERROR(...) \
 			::yal::logger::write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 			  ,__PRETTY_FUNCTION__ \
-			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::error \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+			  ,::yal::level::error \
 			);
 #	else
 #     define YAL_LOG_ERROR(log, ...)
@@ -238,14 +240,16 @@ private:
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
-					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::warning \
 				) \
 			);
 #		define YAL_GLOBAL_LOG_WARNING(...) \
 			::yal::logger::write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 			  ,__PRETTY_FUNCTION__ \
-			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::warning \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+			  ,::yal::level::warning \
 			);
 
 #  else
@@ -259,14 +263,16 @@ private:
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
-					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::debug \
 				) \
 			);
 #		define YAL_GLOBAL_LOG_DEBUG(...) \
 			::yal::logger::write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 			  ,__PRETTY_FUNCTION__ \
-			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::debug \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+			  ,::yal::level::debug \
 			);
 #  else
 #     define YAL_LOG_DEBUG(log, ...)
@@ -279,14 +285,16 @@ private:
 				: log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
-					,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
+					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::info \
 				) \
 			);
 #		define YAL_GLOBAL_LOG_INFO(...) \
 			::yal::logger::write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 			  ,__PRETTY_FUNCTION__ \
-			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__), ::yal::level::info \
+			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
+			  ,::yal::level::info \
 			);
 #	else
 #		define YAL_LOG_INFO(log, ...)
