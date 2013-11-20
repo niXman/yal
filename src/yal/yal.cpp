@@ -319,7 +319,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 			boost::filesystem::create_directories(path);
 	}
 
-	yal::session session(new detail::session(pimpl->root_path, name, volume_size, shift_after));
+	yal::session session = std::make_shared<detail::session>(pimpl->root_path, name, volume_size, shift_after);
 	pimpl->sessions.insert({name, session});
 
 	return session;
@@ -390,7 +390,7 @@ void logger::write(const char *fileline, const char *func, const std::string &da
 
 void logger::flush() { instance()->flush(); }
 
-void logger::init() { object.reset(new logger_session_manager_ptr::element_type); }
+void logger::init() { object = std::make_shared<logger_session_manager_ptr::element_type>(); }
 
 void logger::root_path(const std::string &path) { instance()->root_path(path); }
 
