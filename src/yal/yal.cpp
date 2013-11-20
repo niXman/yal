@@ -37,13 +37,27 @@ struct session::impl {
 		,writen_bytes(0)
 		,volume_number(0)
 	{
-		boost::filesystem::directory_iterator fs_beg(path), fs_end;
+		std::string logpath, logfname;
+		auto pos = name.find_last_of('/');
+		if ( pos != std::string::npos ) {
+			logpath = path + "/" + name.substr(0, pos);
+			logfname= name.substr(pos+1);
+		} else {
+			logpath = path;
+			logfname= name;
+		}
+
+		if ( (pos=logfname.find('.')) != std::string::npos ) {
+			logfname = logfname.substr(0, pos);
+		}
+
+		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
 			auto filename = fs_beg->path().filename().string();
 			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(*fs_beg) )
 				continue;
 
-			if ( filename.find(name+"-") == std::string::npos )
+			if ( filename.find(logfname+"-") == std::string::npos )
 				continue;
 
 			auto beg = std::find(filename.begin(), filename.end(), '-');
