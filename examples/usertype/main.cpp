@@ -1,4 +1,3 @@
-
 #include <yal/yal.hpp>
 
 #include <iostream>
@@ -20,7 +19,7 @@ int main() {
 	YAL_SESSION_TO_TERM(session1, true, "terminal")
 
 	user_point p = {34, 65};
-	YAL_LOG_INFO(session1, "%1%", p)
+	YAL_LOG_INFO(session1, "p=%1%", p)
 }
 
 /***************************************************************************/
