@@ -85,18 +85,32 @@ struct session::impl {
 		std::fclose(file);
 	}
 
-	static const char* date_str() {
-		static const char *fmtstring = "%d.%m.%Y-%H.%M.%S";
+	enum resolution { sec_res, usec_res };
 
-		static char buf[32];
-		std::time_t raw_time;
-		std::tm* time;
+	static std::string datetime(const resolution res) {
+		struct timespec ts;
+		char buf[128] = "\0";
 
-		std::time(&raw_time);
-		time = localtime(&raw_time);
-		strftime(buf, sizeof(buf), fmtstring, time);
+		clock_gettime(CLOCK_REALTIME, &ts);
+		const std::tm *tm = std::localtime(&ts.tv_sec);
+		if ( res == usec_res ) {
+			std::snprintf(
+				 buf, sizeof(buf)
+				,"%02d.%02d.%04d-%02d.%02d.%02d-%6ld"
+				,tm->tm_mday, tm->tm_mon, tm->tm_year
+				,tm->tm_hour, tm->tm_min, tm->tm_sec
+				,ts.tv_nsec/1000
+			);
+		} else {
+			std::snprintf(
+				 buf, sizeof(buf)
+				,"%02d.%02d.%04d-%02d.%02d.%02d"
+				,tm->tm_mday, tm->tm_mon, tm->tm_year
+				,tm->tm_hour, tm->tm_min, tm->tm_sec
+			);
+		}
 
-		return &buf[0];
+		return std::string(buf);
 	}
 
 	std::string volume_fname() {
@@ -117,7 +131,7 @@ struct session::impl {
 					% path
 					% name
 					% volume_number
-					% date_str()
+					% datetime(sec_res)
 			).str();
 		} else {
 			std::strcat(fmt, "%s");
@@ -126,7 +140,7 @@ struct session::impl {
 					% path
 					% std::string(name.begin(), it)
 					% volume_number
-					% date_str()
+					% datetime(sec_res)
 					% std::string(it, name.end())
 			).str();
 		}
@@ -169,14 +183,14 @@ struct session::impl {
 		if ( toterm ) {
 			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 			if ( prefix.empty() ) {
-				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", date_str(), levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
 			} else {
-				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), date_str(), levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
 			}
 			std::fflush(termlog);
 		}
 
-		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", date_str(), levelstr, fileline, func, data.c_str());
+		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
 
 		if ( writen < 0 ) {
 			int error = errno;
@@ -222,7 +236,8 @@ session::~session()
 
 const std::string &session::name() const { return pimpl->name; }
 
-const char *session::date_str() { return session::impl::date_str(); }
+std::string session::sec_date_str() { return impl::datetime(impl::sec_res).c_str(); }
+std::string session::usec_date_str() { return impl::datetime(impl::usec_res).c_str(); }
 
 /***************************************************************************/
 

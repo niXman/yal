@@ -27,7 +27,8 @@ namespace detail {
 /***************************************************************************/
 
 struct session: private boost::noncopyable {
-	static const char* date_str();
+	static std::string sec_date_str();
+	static std::string usec_date_str();
 
 	session(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after);
 	~session();
