@@ -201,7 +201,10 @@ struct session::impl {
 		if ( writen_bytes >= volume_size ) {
 			writen_bytes = 0;
 
-			std::fclose(file);
+			if ( std::fclose(file) != 0 ) {
+				int error = errno;
+				throw std::runtime_error("yal: cannot close logfile with errno="+std::to_string(error));
+			}
 
 			volume_number += 1;
 			create_volume();
