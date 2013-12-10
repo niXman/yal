@@ -97,7 +97,7 @@ struct session::impl {
 			std::snprintf(
 				 buf, sizeof(buf)
 				,"%02d.%02d.%04d-%02d.%02d.%02d-%6ld"
-				,tm->tm_mday, tm->tm_mon, tm->tm_year-1900
+				,tm->tm_mday, tm->tm_mon, tm->tm_year+1900
 				,tm->tm_hour, tm->tm_min, tm->tm_sec
 				,ts.tv_nsec/1000
 			);
@@ -105,7 +105,7 @@ struct session::impl {
 			std::snprintf(
 				 buf, sizeof(buf)
 				,"%02d.%02d.%04d-%02d.%02d.%02d"
-				,tm->tm_mday, tm->tm_mon, tm->tm_year-1900
+				,tm->tm_mday, tm->tm_mon, tm->tm_year+1900
 				,tm->tm_hour, tm->tm_min, tm->tm_sec
 			);
 		}
