@@ -212,7 +212,7 @@ private:
 #  define YAL_SESSION_TO_TERM(log, flag, pref) \
 		log->to_term((flag), (pref));
 
-#  ifndef YAL_DISABLE_ERROR
+#	ifndef YAL_DISABLE_ERROR
 #		define YAL_LOG_ERROR(log, ...) ( \
 			::yal::level::error < log->get_level() \
 				? static_cast<void>(0) \
@@ -231,11 +231,11 @@ private:
 			  ,::yal::level::error \
 			);
 #	else
-#     define YAL_LOG_ERROR(log, ...)
-#  endif
+#		define YAL_LOG_ERROR(log, ...)
+#	endif
 
-#  ifndef YAL_DISABLE_WARNING
-#     define YAL_LOG_WARNING(log, ...) ( \
+#	ifndef YAL_DISABLE_WARNING
+#		define YAL_LOG_WARNING(log, ...) ( \
 			::yal::level::warning < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
@@ -253,12 +253,12 @@ private:
 			  ,::yal::level::warning \
 			);
 
-#  else
-#     define YAL_LOG_WARNING(log, ...)
-#  endif
+#	else
+#		define YAL_LOG_WARNING(log, ...)
+#	endif
 
-#  ifndef YAL_DISABLE_DEBUG
-#     define YAL_LOG_DEBUG(log, ...) ( \
+#	ifndef YAL_DISABLE_DEBUG
+#		define YAL_LOG_DEBUG(log, ...) ( \
 			::yal::level::debug < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
@@ -275,12 +275,12 @@ private:
 			  ,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
 			  ,::yal::level::debug \
 			);
-#  else
-#     define YAL_LOG_DEBUG(log, ...)
-#  endif
+#	else
+#		define YAL_LOG_DEBUG(log, ...)
+#	endif
 
-#  ifndef YAL_DISABLE_INFO
-#     define YAL_LOG_INFO(log, ...) ( \
+#	ifndef YAL_DISABLE_INFO
+#		define YAL_LOG_INFO(log, ...) ( \
 			::yal::level::info < log->get_level() \
 				? static_cast<void>(0) \
 				: log->write( \
