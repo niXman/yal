@@ -203,13 +203,13 @@ private:
 		(::yal::logger::get(name).get() != 0)
 #	define YAL_SESSION_FLUSH(log) \
 		log->flush();
-#  define YAL_SESSION_SET_LEVEL(log, lvl) \
+#	define YAL_SESSION_SET_LEVEL(log, lvl) \
 		log->set_level((lvl));
 #	define YAL_SESSION_SET_BUFFER(log, size) \
 		log->set_buffer((size));
 #	define YAL_SESSION_SET_UNBUFFERED(log) \
 		log->set_buffer(0);
-#  define YAL_SESSION_TO_TERM(log, flag, pref) \
+#	define YAL_SESSION_TO_TERM(log, flag, pref) \
 		log->to_term((flag), (pref));
 
 #	ifndef YAL_DISABLE_ERROR
@@ -311,10 +311,10 @@ private:
 #	define YAL_SESSION_GET2(name)
 #	define YAL_SESSION_EXISTS(name)
 #	define YAL_SESSION_FLUSH(log)
-#  define YAL_SESSION_SET_LEVEL(log, lvl)
+#	define YAL_SESSION_SET_LEVEL(log, lvl)
 #	define YAL_SESSION_SET_BUFFER(log, size)
 #	define YAL_SESSION_SET_UNBUFFERED(log)
-#  define YAL_SESSION_TO_TERM(log, flag, pref)
+#	define YAL_SESSION_TO_TERM(log, flag, pref)
 
 #	define YAL_LOG_ERROR(log, ...)
 #	define YAL_LOG_WARNING(log, ...)
