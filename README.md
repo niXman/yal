@@ -10,23 +10,23 @@ Yet Another Logger
 1. Сессии: вы можете создать(`YAL_CREATE()`) нужное кол-во сессий, и каждой из них задать свои параметры(путь/имя хранения логов, размер тома, лимит томов).
 ```cpp
 int main() {
-   YAL_CREATE(session1, "session1");
+        YAL_CREATE(session1, "session1");
 }
 ```
 Так же, присутствует макрос `YAL_CREATE2()`, который может использоваться для инициализации существующей переменной-сесии.
 ```cpp
 struct type {
-   type()
-      :session(YAL_CREATE2("session1"))
-   {}
+        type()
+                :session(YAL_CREATE2("session1"))
+        {}
 
-   yal::session session;
+        yal::session session;
 };
 ```
 ```cpp
 int main() {
-   yal::session session1(YAL_CREATE2("session1"));
-   yal::session session2 = YAL_CREATE2("session2");
+        yal::session session1(YAL_CREATE2("session1"));
+        yal::session session2 = YAL_CREATE2("session2");
 }
 ```
 
@@ -51,9 +51,7 @@ int main() {
         YAL_SET_ROOT_PATH("/var/log/myapplication")
         YAL_CREATE(session1, "session1")
         YAL_CREATE(session2, "session2")
-        
         ...
-        
         YAL_FLUSH()
 }
 ```
