@@ -1,4 +1,3 @@
-
 // Copyright (c) 2013,2014 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
@@ -50,6 +49,9 @@ std::once_flag logger::flag;
 /***************************************************************************/
 
 namespace detail {
+
+using mutex_t = std::mutex;
+using guard_t = std::lock_guard<mutex_t>;
 
 /***************************************************************************/
 /***************************************************************************/
@@ -312,19 +314,19 @@ struct session_manager::impl {
 		,sessions()
 	{}
 
-	template<typename Cont, typename F>
-	static void iterate(Cont &cont, F func) {
-		for ( auto it = cont.begin(), end = cont.end(); it != end; ) {
+	template<typename F>
+	void iterate(F func) {
+		for ( auto it = sessions.begin(), end = sessions.end(); it != end; ) {
 			if ( auto session = it->second.lock() ) {
 				func(session);
 				++it;
 			} else {
-				it = cont.erase(it);
+				it = sessions.erase(it);
 			}
 		}
 	}
 
-	std::mutex mutex;
+	mutex_t mutex;
 	std::string root_path;
 	sessions_map sessions;
 }; // struct impl
@@ -343,13 +345,13 @@ session_manager::~session_manager() {
 /***************************************************************************/
 
 const std::string &session_manager::root_path() const {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
 	return pimpl->root_path;
 }
 
 void session_manager::root_path(const std::string &path) {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
 	if ( !boost::filesystem::exists(path) )
 		boost::filesystem::create_directories(path);
@@ -359,16 +361,15 @@ void session_manager::root_path(const std::string &path) {
 
 std::shared_ptr<session>
 session_manager::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
 	if ( !name.empty() && name[0] == '/' )
 		throw std::runtime_error("yal: session name cannot be a full path name");
 	if ( !shift_after )
 		throw std::runtime_error("yal: shift_after can be 1 or greater");
 
-	impl::iterate(
-		 pimpl->sessions
-		,[&name](yal::session s) {
+	pimpl->iterate(
+		[&name](yal::session s) {
 			if ( s->name() == name )
 				throw std::runtime_error("yal: session \""+name+"\" already exists");
 		}
@@ -391,17 +392,16 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 /***************************************************************************/
 
 void session_manager::write(const char *fileline, const char *func, const std::string &data, level lvl) {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
-	impl::iterate(
-		 pimpl->sessions
-		,[fileline, func, &data, lvl](yal::session s) { s->write(fileline, func, data, lvl); }
+	pimpl->iterate(
+		[fileline, func, &data, lvl](yal::session s) { s->write(fileline, func, data, lvl); }
 	);
 }
 
 std::shared_ptr<session>
 session_manager::get(const std::string &name) const {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
 	auto it = pimpl->sessions.find(name);
 	if ( it == pimpl->sessions.end() )
@@ -418,12 +418,9 @@ session_manager::get(const std::string &name) const {
 /***************************************************************************/
 
 void session_manager::flush() {
-	std::lock_guard<std::mutex> lock(pimpl->mutex);
+	guard_t lock(pimpl->mutex);
 
-	impl::iterate(
-		 pimpl->sessions
-		,[](yal::session s) { s->flush(); }
-	);
+	pimpl->iterate([](yal::session s) { s->flush(); });
 }
 
 /***************************************************************************/
