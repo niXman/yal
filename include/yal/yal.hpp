@@ -47,10 +47,11 @@
 namespace yal {
 
 enum level {
-	 info    = 0x01
-	,debug   = 0x02
-	,warning = 0x04
-	,error   = 0x08
+	 info    = 4
+	,debug   = 3
+	,warning = 2
+	,error   = 1
+	,disable = 0
 };
 
 namespace detail {
@@ -60,6 +61,7 @@ namespace detail {
 struct session: private boost::noncopyable {
 	static std::string sec_date_str();
 	static std::string usec_date_str();
+	static const char* level_str(level lvl);
 
 	session(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after);
 	~session();
@@ -245,14 +247,14 @@ private:
 
 #	ifndef YAL_DISABLE_ERROR
 #		define YAL_LOG_ERROR(log, ...) ( \
-			::yal::level::error < log->get_level() \
-				? static_cast<void>(0) \
-				: log->write( \
+			log->get_level() >= ::yal::level::error \
+				? log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
 					,::yal::level::error \
 				) \
+				: static_cast<void>(0) \
 			);
 #		define YAL_GLOBAL_LOG_ERROR(...) \
 			::yal::logger::write( \
@@ -262,19 +264,20 @@ private:
 			  ,::yal::level::error \
 			);
 #	else
-#		define YAL_LOG_ERROR(log, ...)
+#		define YAL_LOG_ERROR(log, ...) \
+			do {} while(0);
 #	endif
 
 #	ifndef YAL_DISABLE_WARNING
 #		define YAL_LOG_WARNING(log, ...) ( \
-			::yal::level::warning < log->get_level() \
-				? static_cast<void>(0) \
-				: log->write( \
+			log->get_level() >= ::yal::level::warning \
+				? log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
 					,::yal::level::warning \
 				) \
+				: static_cast<void>(0) \
 			);
 #		define YAL_GLOBAL_LOG_WARNING(...) \
 			::yal::logger::write( \
@@ -285,19 +288,20 @@ private:
 			);
 
 #	else
-#		define YAL_LOG_WARNING(log, ...)
+#		define YAL_LOG_WARNING(log, ...) \
+			do {} while(0);
 #	endif
 
 #	ifndef YAL_DISABLE_DEBUG
 #		define YAL_LOG_DEBUG(log, ...) ( \
-			::yal::level::debug < log->get_level() \
-				? static_cast<void>(0) \
-				: log->write( \
+			log->get_level() >= ::yal::level::debug \
+				? log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
 					,::yal::level::debug \
 				) \
+				: static_cast<void>(0) \
 			);
 #		define YAL_GLOBAL_LOG_DEBUG(...) \
 			::yal::logger::write( \
@@ -307,19 +311,20 @@ private:
 			  ,::yal::level::debug \
 			);
 #	else
-#		define YAL_LOG_DEBUG(log, ...)
+#		define YAL_LOG_DEBUG(log, ...) \
+			do {} while(0);
 #	endif
 
 #	ifndef YAL_DISABLE_INFO
 #		define YAL_LOG_INFO(log, ...) ( \
-			::yal::level::info < log->get_level() \
-				? static_cast<void>(0) \
-				: log->write( \
+			log->get_level() == ::yal::level::info \
+				? log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,__PRETTY_FUNCTION__ \
 					,YAL_MESSAGE_AS_STRING(__VA_ARGS__) \
 					,::yal::level::info \
 				) \
+				: static_cast<void>(0) \
 			);
 #		define YAL_GLOBAL_LOG_INFO(...) \
 			::yal::logger::write( \
@@ -329,7 +334,8 @@ private:
 			  ,::yal::level::info \
 			);
 #	else
-#		define YAL_LOG_INFO(log, ...)
+#		define YAL_LOG_INFO(log, ...) \
+			do {} while(0);
 #	endif
 #else // YAL_DISABLE_LOGGING == true
 #	define YAL_SET_ROOT_PATH(var)
@@ -347,14 +353,22 @@ private:
 #	define YAL_SESSION_SET_UNBUFFERED(log)
 #	define YAL_SESSION_TO_TERM(log, flag, pref)
 
-#	define YAL_LOG_ERROR(log, ...)
-#	define YAL_LOG_WARNING(log, ...)
-#	define YAL_LOG_DEBUG(log, ...)
-#	define YAL_LOG_INFO(log, ...)
-#	define YAL_GLOBAL_LOG_ERROR(...)
-#	define YAL_GLOBAL_LOG_WARNING(...)
-#	define YAL_GLOBAL_LOG_DEBUG(...)
-#	define YAL_GLOBAL_LOG_INFO(...)
+#	define YAL_LOG_ERROR(log, ...) \
+		do {} while(0);
+#	define YAL_LOG_WARNING(log, ...) \
+		do {} while(0);
+#	define YAL_LOG_DEBUG(log, ...) \
+		do {} while(0);
+#	define YAL_LOG_INFO(log, ...) \
+		do {} while(0);
+#	define YAL_GLOBAL_LOG_ERROR(...) \
+		do {} while(0);
+#	define YAL_GLOBAL_LOG_WARNING(...) \
+		do {} while(0);
+#	define YAL_GLOBAL_LOG_DEBUG(...) \
+		do {} while(0);
+#	define YAL_GLOBAL_LOG_INFO(...) \
+		do {} while(0);
 #endif // YAL_DISABLE_LOGGING
 
 /***************************************************************************/

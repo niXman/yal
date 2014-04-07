@@ -207,11 +207,11 @@ struct session::impl {
 
 	void write(const char *fileline, const char *func, const std::string &data, const yal::level lvl) {
 		const char *levelstr = (
-			lvl == yal::debug ? "debug  "
-				:lvl == yal::error ? "error  "
-					:lvl == yal::info ? "info   "
-						:lvl == yal::warning ? "warning"
-							: 0
+			lvl == yal::info ? "info   "
+				: lvl == yal::debug ? "debug  "
+					: lvl == yal::warning ? "warning"
+						: lvl == yal::error ? "error  "
+							: "disabled"
 		);
 		if ( toterm ) {
 			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
@@ -253,8 +253,8 @@ struct session::impl {
 	const std::string			name;
 	const std::size_t			volume_size;
 	std::size_t					shift_after;
-	FILE							*file;
-	bool							toterm;
+	FILE						*file;
+	bool						toterm;
 	std::string					prefix;
 	yal::level					level;
 	std::size_t					writen_bytes;
@@ -274,6 +274,16 @@ const std::string &session::name() const { return pimpl->name; }
 
 std::string session::sec_date_str() { return impl::datetime(impl::sec_res).c_str(); }
 std::string session::usec_date_str() { return impl::datetime(impl::usec_res).c_str(); }
+
+const char* session::level_str(level lvl) {
+	return (
+		lvl == yal::info ? "info"
+			: lvl == yal::debug ? "debug"
+				: lvl == yal::warning ? "warning"
+					: lvl == yal::error ? "error"
+						: "disabled"
+	);
+}
 
 /***************************************************************************/
 
