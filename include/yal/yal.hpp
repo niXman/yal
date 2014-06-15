@@ -76,7 +76,7 @@ struct session: private boost::noncopyable {
 	void set_level(const level lvl);
 	yal::level get_level() const;
 
-	void write(const char *fileline, const char *func, const std::string &data, const level lvl);
+	void write(const char *fileline, const char *func, const std::string &data, level lvl);
 	void flush();
 
 private:
