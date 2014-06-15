@@ -36,7 +36,7 @@
 /***************************************************************************/
 
 int main() {
-	YAL_CREATE(log, "log", 1024*10)
+	YAL_CREATE(log, "log", 1024*10);
 
 	yal::level lvl = yal::info;
 	for ( std::size_t idx = 0; idx < 15; ++idx ) {
@@ -57,12 +57,12 @@ int main() {
 			lvl = yal::disable;
 			break;
 		}
-		YAL_SESSION_SET_LEVEL(log, lvl)
+		YAL_SESSION_SET_LEVEL(log, lvl);
 
-		YAL_LOG_INFO	(log, "INFO    LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl))
-		YAL_LOG_DEBUG	(log, "DEBUG   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl))
-		YAL_LOG_WARNING	(log, "WARNING LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl))
-		YAL_LOG_ERROR	(log, "ERROR   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl))
+		YAL_LOG_INFO	(log, "INFO    LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
+		YAL_LOG_DEBUG	(log, "DEBUG   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
+		YAL_LOG_WARNING(log, "WARNING LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
+		YAL_LOG_ERROR	(log, "ERROR   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
 	}
 }
 

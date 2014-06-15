@@ -38,13 +38,9 @@
 
 #include <unordered_map>
 #include <algorithm>
+#include <mutex>
 
 namespace yal {
-
-/***************************************************************************/
-
-logger::logger_session_manager_ptr logger::object;
-std::once_flag logger::flag;
 
 /***************************************************************************/
 
@@ -58,11 +54,11 @@ using guard_t = std::lock_guard<mutex_t>;
 /***************************************************************************/
 
 struct session::impl {
-	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after)
-		:path(path)
-		,name(name)
-		,volume_size(volume_size)
-		,shift_after(shift_after)
+	impl(const std::string &_path, const std::string &_name, std::size_t _volume_size, std::size_t _shift_after)
+		:path(_path)
+		,name(_name)
+		,volume_size(_volume_size)
+		,shift_after(_shift_after)
 		,file(0)
 		,toterm(false)
 		,prefix()
@@ -70,8 +66,19 @@ struct session::impl {
 		,writen_bytes(0)
 		,volume_number(0)
 	{
+		volume_number = get_last_volume_number(name, path);
+		create_volume();
+	}
+
+	~impl() {
+		std::fclose(file);
+	}
+
+	static std::size_t get_last_volume_number(const std::string &name, const std::string &path) {
+		std::size_t volume_number = 0;
 		std::string logpath, logfname;
-		auto pos = name.find_last_of('/');
+
+		std::size_t pos = name.find_last_of('/');
 		if ( pos != std::string::npos ) {
 			logpath = path + "/" + name.substr(0, pos);
 			logfname= name.substr(pos+1);
@@ -111,24 +118,21 @@ struct session::impl {
 				volume_number = num;
 		}
 
-		create_volume();
-	}
-
-	~impl() {
-		std::fclose(file);
+		return volume_number;
 	}
 
 	enum resolution { sec_res, usec_res };
 
-	static std::string datetime(const resolution res) {
-		struct timespec ts;
-		char buf[128] = "\0";
+	static const char* datetime(const resolution res, char *buf, const std::size_t size) {
+		if ( size < 32 )
+			throw std::runtime_error("yal: buffer's size for date-time format should be greater or equal to 32 bytes");
 
+		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
 		const std::tm *tm = std::localtime(&ts.tv_sec);
 		if ( res == usec_res ) {
 			std::snprintf(
-				 buf, sizeof(buf)
+				 buf, size
 				,"%02d.%02d.%04d-%02d.%02d.%02d-%6ld"
 				,tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900
 				,tm->tm_hour, tm->tm_min, tm->tm_sec
@@ -136,59 +140,40 @@ struct session::impl {
 			);
 		} else {
 			std::snprintf(
-				 buf, sizeof(buf)
+				 buf, size
 				,"%02d.%02d.%04d-%02d.%02d.%02d"
 				,tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900
 				,tm->tm_hour, tm->tm_min, tm->tm_sec
 			);
 		}
 
-		return std::string(buf);
+		return buf;
 	}
 
-	std::string volume_fname() {
-		std::string result;
+	void create_volume() {
+		char fmt[64] = "\0";
+		char datebuf[64] = "\0";
+		char pathbuf[1024*4] = "\0";
 
 		if ( volume_number > shift_after ) {
 			shift_after = shift_after * 10 + 9;
 		}
 
-		char fmt[64] = {0};
 		const int digits = std::log10(shift_after)+1;
 		std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
-		std::string::const_iterator it = std::find(name.begin(), name.end(), '.');
-		if ( it == name.end() ) {
-			result = (
-				boost::format(fmt)
-					% path
-					% name
-					% volume_number
-					% datetime(sec_res)
-			).str();
+		const char *pos = std::strchr(name.c_str(), '.');
+		if ( ! pos ) {
+			std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datetime(sec_res, datebuf, sizeof(datebuf)));
 		} else {
 			std::strcat(fmt, "%s");
-			result = (
-				boost::format(fmt)
-					% path
-					% std::string(name.begin(), it)
-					% volume_number
-					% datetime(sec_res)
-					% std::string(it, name.end())
-			).str();
+			std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datetime(sec_res, datebuf, sizeof(datebuf)), pos);
 		}
 
-		//std::cout << "shift_after:" << shift_after << ", digits:" << digits << ", fmt:" << fmt << ", name:" << result << std::endl;
-
-		return result;
-	}
-
-	void create_volume() {
-		const std::string &fname = volume_fname();
-		file = std::fopen(fname.c_str(), "wb");
+		file = std::fopen(pathbuf, "wb");
 		if ( !file ) {
 			int error = errno;
-			throw std::runtime_error("yal: cannot create logfile \"" + fname + "\" with errno="+std::to_string(error));
+			throw std::runtime_error("yal: cannot create logfile \"" + std::string(pathbuf) + "\" with errno="+std::to_string(error));
 		}
 	}
 
@@ -213,17 +198,21 @@ struct session::impl {
 						: lvl == yal::error ? "error  "
 							: "disabled"
 		);
+
+		char datebuf[64] = "\0";
+		const char *datestr = datetime(usec_res, datebuf, sizeof(datebuf));
+
 		if ( toterm ) {
 			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 			if ( prefix.empty() ) {
-				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", datestr, levelstr, fileline, func, data.c_str());
 			} else {
-				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), datestr, levelstr, fileline, func, data.c_str());
 			}
 			std::fflush(termlog);
 		}
 
-		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", datetime(usec_res).c_str(), levelstr, fileline, func, data.c_str());
+		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", datestr, levelstr, fileline, func, data.c_str());
 
 		if ( writen < 0 ) {
 			int error = errno;
@@ -249,16 +238,16 @@ struct session::impl {
 			std::fflush(file);
 	}
 
-	const std::string			path;
-	const std::string			name;
-	const std::size_t			volume_size;
-	std::size_t					shift_after;
-	FILE						*file;
-	bool						toterm;
-	std::string					prefix;
-	yal::level					level;
-	std::size_t					writen_bytes;
-	std::size_t					volume_number;
+	const std::string path;
+	const std::string name;
+	const std::size_t volume_size;
+	std::size_t			shift_after;
+	FILE					*file;
+	bool					toterm;
+	std::string			prefix;
+	yal::level			level;
+	std::size_t			writen_bytes;
+	std::size_t			volume_number;
 };
 
 /***************************************************************************/
@@ -272,8 +261,8 @@ session::~session()
 
 const std::string &session::name() const { return pimpl->name; }
 
-std::string session::sec_date_str() { return impl::datetime(impl::sec_res).c_str(); }
-std::string session::usec_date_str() { return impl::datetime(impl::usec_res).c_str(); }
+const char* session::sec_date_str(char *buf, const std::size_t size) { return impl::datetime(impl::sec_res, buf, size); }
+const char* session::usec_date_str(char *buf, const std::size_t size) { return impl::datetime(impl::usec_res, buf, size); }
 
 const char* session::level_str(level lvl) {
 	return (
@@ -301,7 +290,7 @@ void session::set_level(const level lvl) {
 
 level session::get_level() const { return pimpl->level; }
 
-void session::write(const char *fileline, const char *func, const std::string &data, level lvl) {
+void session::write(const char *fileline, const char *func, const std::string &data, const level lvl) {
 	if ( data.empty() ) return;
 	pimpl->write(fileline, func, data, lvl);
 }
@@ -323,6 +312,9 @@ struct session_manager::impl {
 		,root_path(".")
 		,sessions()
 	{}
+	~impl() {
+		flush();
+	}
 
 	template<typename F>
 	void iterate(F func) {
@@ -334,6 +326,10 @@ struct session_manager::impl {
 				it = sessions.erase(it);
 			}
 		}
+	}
+
+	void flush() {
+		iterate([](yal::session s) { s->flush(); });
 	}
 
 	mutex_t mutex;
@@ -348,7 +344,6 @@ session_manager::session_manager()
 {}
 
 session_manager::~session_manager() {
-	flush();
 	delete pimpl;
 }
 
@@ -430,7 +425,7 @@ session_manager::get(const std::string &name) const {
 void session_manager::flush() {
 	guard_t lock(pimpl->mutex);
 
-	pimpl->iterate([](yal::session s) { s->flush(); });
+	pimpl->flush();
 }
 
 /***************************************************************************/
@@ -439,9 +434,9 @@ void session_manager::flush() {
 
 } // ns detail
 
-logger::logger_session_manager_ptr logger::instance() {
-	std::call_once(flag, &init);
-	return object;
+detail::session_manager* logger::instance() {
+	static std::unique_ptr<detail::session_manager> object(new detail::session_manager);
+	return object.get();
 }
 
 const std::string &logger::root_path() { return instance()->root_path(); }
@@ -459,8 +454,6 @@ void logger::write(const char *fileline, const char *func, const std::string &da
 }
 
 void logger::flush() { instance()->flush(); }
-
-void logger::init() { object = std::make_shared<logger_session_manager_ptr::element_type>(); }
 
 void logger::root_path(const std::string &path) { instance()->root_path(path); }
 
