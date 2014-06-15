@@ -33,6 +33,7 @@
 #define _yal__yal_hpp
 
 #include <climits>
+#include <memory>
 
 #include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
