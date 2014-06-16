@@ -544,10 +544,12 @@ private:
 #include <chrono>
 
 namespace yal {
+namespace detail {
+
 struct timepoint {
 	const std::size_t sline;
 	const char *descr;
-	std::chrono::high_resolution_clock::time_point time;
+	const std::chrono::high_resolution_clock::time_point time;
 };
 
 inline const char* time_unit_name(const std::chrono::seconds &)
@@ -559,10 +561,11 @@ inline const char* time_unit_name(const std::chrono::microseconds &)
 inline const char* time_unit_name(const std::chrono::nanoseconds &)
 {return "ns.";}
 
+} // ns detail
 } // ns yal
 
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
-		const ::yal::timepoint name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
+		const ::yal::detail::timepoint name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name, resolution) \
 		log->write( \
 			__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
@@ -575,7 +578,7 @@ inline const char* time_unit_name(const std::chrono::nanoseconds &)
 				,std::chrono::duration_cast<std::chrono::resolution>( \
 					std::chrono::high_resolution_clock::now() - name.time \
 				).count() \
-				,::yal::time_unit_name(std::chrono::resolution()) \
+				,::yal::detail::time_unit_name(std::chrono::resolution()) \
 			) \
 		  ,::yal::level::info \
 		)
