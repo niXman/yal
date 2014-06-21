@@ -220,13 +220,17 @@ private:
 		::yal::logger::root_path(var)
 #	define YAL_GET_ROOT_PATH(var) \
 		const std::string &var = ::yal::logger::root_path()
-#	define YAL_CREATE(var, ...) \
-		::yal::session var = ::yal::logger::create(__VA_ARGS__)
-#	define YAL_CREATE2(...) \
-		::yal::logger::create(__VA_ARGS__)
+#	define YAL_GET_ROOT_PATH2(var) \
+		var = ::yal::logger::root_path()
 #	define YAL_FLUSH() \
 		::yal::logger::flush()
 
+#	define YAL_SESSION_CREATE(var, ...) \
+		::yal::session var = ::yal::logger::create(__VA_ARGS__)
+#	define YAL_SESSION_CREATE2(var, ...) \
+		var = ::yal::logger::create(__VA_ARGS__)
+#	define YAL_SESSION_CREATE3(...) \
+		::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_GET(var, name) \
 		::yal::session var = ::yal::logger::get(name)
 #	define YAL_SESSION_GET2(name) \
@@ -406,8 +410,10 @@ private:
 #else // YAL_DISABLE_LOGGING == true
 #	define YAL_SET_ROOT_PATH(var)
 #	define YAL_GET_ROOT_PATH(var)
-#	define YAL_CREATE(var, ...)
-#	define YAL_CREATE2(...)
+#	define YAL_GET_ROOT_PATH2(var)
+#	define YAL_SESSION_CREATE(var, ...)
+#	define YAL_SESSION_CREATE2(...)
+#	define YAL_SESSION_CREATE3(...)
 #	define YAL_FLUSH()
 
 #	define YAL_SESSION_GET(var, name)
@@ -423,29 +429,29 @@ private:
 		do {} while(0)
 #	define YAL_LOG_ERROR_IF(cond, log, ...) \
 		do {} while(0)
-#	define YAL_LOG_WARNING(log, ...) \
-		do {} while(0)
-#	define YAL_LOG_WARNING_IF(cond, log, ...) \
-		do {} while(0)
-#	define YAL_LOG_DEBUG(log, ...) \
-		do {} while(0)
-#	define YAL_LOG_DEBUG_IF(cond, log, ...) \
-		do {} while(0)
-#	define YAL_LOG_INFO(log, ...) \
-		do {} while(0)
-#	define YAL_LOG_INFO_IF(cond, log, ...) \
-		do {} while(0)
 #	define YAL_GLOBAL_LOG_ERROR(...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) \
+		do {} while(0)
+#	define YAL_LOG_WARNING(log, ...) \
+		do {} while(0)
+#	define YAL_LOG_WARNING_IF(cond, log, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_WARNING(...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) \
 		do {} while(0)
+#	define YAL_LOG_DEBUG(log, ...) \
+		do {} while(0)
+#	define YAL_LOG_DEBUG_IF(cond, log, ...) \
+		do {} while(0)
 #	define YAL_GLOBAL_LOG_DEBUG(...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) \
+		do {} while(0)
+#	define YAL_LOG_INFO(log, ...) \
+		do {} while(0)
+#	define YAL_LOG_INFO_IF(cond, log, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_INFO(...) \
 		do {} while(0)
@@ -565,27 +571,32 @@ inline const char* time_unit_name(const std::chrono::nanoseconds &)
 } // ns yal
 
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
-		const ::yal::detail::timepoint name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
+		const ::yal::detail::timepoint tp_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name, resolution) \
 		log->write( \
 			__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 		  ,__PRETTY_FUNCTION__ \
 		  ,YAL_FORMAT_MESSAGE_AS_STRING( \
 				 "execution time of scope(\"%s\") in lines %d-%d is %f %s" \
-				,name.descr \
-				,name.sline \
+				,tp_##name.descr \
+				,tp_##name.sline \
 				,__LINE__ \
 				,std::chrono::duration_cast<std::chrono::resolution>( \
-					std::chrono::high_resolution_clock::now() - name.time \
+					std::chrono::high_resolution_clock::now() - tp_##name.time \
 				).count() \
 				,::yal::detail::time_unit_name(std::chrono::resolution()) \
 			) \
 		  ,::yal::level::info \
 		)
+#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name, resolution) \
+		if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name, resolution) \
+
 #else // !YAL_DISABLE_TIMEPOINT
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
 		do {} while(0)
 #	define YAL_PRINT_TIMEPOINT(log, name, resolution) \
+		do {} while(0)
+#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name, resolution) \
 		do {} while(0)
 #endif // YAL_DISABLE_TIMEPOINT
 

@@ -36,7 +36,7 @@
 /***************************************************************************/
 
 int main() {
-	YAL_CREATE(log, "log", 1024*10);
+	YAL_SESSION_CREATE(log, "log", 1024*10);
 
 	yal::level lvl = yal::info;
 	for ( std::size_t idx = 0; idx < 15; ++idx ) {

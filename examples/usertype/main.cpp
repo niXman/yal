@@ -46,7 +46,7 @@ struct user_point {
 /***************************************************************************/
 
 int main() {
-	YAL_CREATE(session1, "sessions/session1");
+	YAL_SESSION_CREATE(session1, "sessions/session1");
 	YAL_SESSION_TO_TERM(session1, true, "terminal");
 
 	user_point p = {34, 56};

@@ -37,10 +37,10 @@
 /***************************************************************************/
 
 int main() {
-	YAL_CREATE(test1, "test1", 1024*10);
-	YAL_CREATE(test2, "test2", 1024*10);
-	YAL_CREATE(test3, "test3", 1024*10);
-	YAL_CREATE(test4, "test4", 1024*10);
+	YAL_SESSION_CREATE(test1, "test1", 1024*10);
+	YAL_SESSION_CREATE(test2, "test2", 1024*10);
+	YAL_SESSION_CREATE(test3, "test3", 1024*10);
+	YAL_SESSION_CREATE(test4, "test4", 1024*10);
 //	YAL_SESSION_TO_TERM(test1, true, "term1")
 	for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {
 		YAL_LOG_INFO	(test1, "%1% -> %2% -> %1%", idx, idx+1);
@@ -87,7 +87,7 @@ int main() {
 	YAL_ASSERT( YAL_SESSION_EXISTS("test4"));
 	YAL_ASSERT(!YAL_SESSION_EXISTS("test5"));
 
-	YAL_CREATE(test5, "test5", 1024*10);
+	YAL_SESSION_CREATE(test5, "test5", 1024*10);
 	YAL_TEST_LESS		(test5, 0, 1);
 	YAL_TEST_LESS		(test5, 1, 1); // test fail
 	YAL_TEST_LESSEQ	(test5, 1, 1);
@@ -117,6 +117,7 @@ int main() {
 	YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
 	std::this_thread::sleep_for(std::chrono::microseconds(2));
 	YAL_PRINT_TIMEPOINT(test5, tp1, microseconds);
+	YAL_PRINT_TIMEPOINT_IF(test5, true, tp1, microseconds);
 }
 
 /***************************************************************************/
