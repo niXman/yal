@@ -558,45 +558,44 @@ struct timepoint {
 	const std::chrono::high_resolution_clock::time_point time;
 };
 
-inline const char* time_unit_name(const std::chrono::seconds &)
-{return "s.";}
-inline const char* time_unit_name(const std::chrono::milliseconds &)
-{return "ms.";}
-inline const char* time_unit_name(const std::chrono::microseconds &)
-{return "us.";}
-inline const char* time_unit_name(const std::chrono::nanoseconds &)
-{return "ns.";}
-
 } // ns detail
 } // ns yal
 
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
-		const ::yal::detail::timepoint tp_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
-#	define YAL_PRINT_TIMEPOINT(log, name, resolution) \
-		log->write( \
-			__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-		  ,__PRETTY_FUNCTION__ \
-		  ,YAL_FORMAT_MESSAGE_AS_STRING( \
-				 "execution time of scope(\"%s\") in lines %d-%d is %f %s" \
-				,tp_##name.descr \
-				,tp_##name.sline \
-				,__LINE__ \
-				,std::chrono::duration_cast<std::chrono::resolution>( \
-					std::chrono::high_resolution_clock::now() - tp_##name.time \
-				).count() \
-				,::yal::detail::time_unit_name(std::chrono::resolution()) \
-			) \
-		  ,::yal::level::info \
-		)
-#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name, resolution) \
-		if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name, resolution) \
+		const ::yal::detail::timepoint timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
+#	define YAL_PRINT_TIMEPOINT(log, name) \
+		do { \
+			const auto diff = std::chrono::high_resolution_clock::now() - timepoint_##name.time; \
+			const auto ns   = std::chrono::duration_cast<std::chrono::nanoseconds>(diff); \
+			const auto s    = std::chrono::duration_cast<std::chrono::seconds>(ns); \
+			const auto ms   = std::chrono::duration_cast<std::chrono::milliseconds>(ns); \
+			const auto us   = std::chrono::duration_cast<std::chrono::microseconds>(ns); \
+			\
+			log->write( \
+				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+			  ,__PRETTY_FUNCTION__ \
+			  ,YAL_FORMAT_MESSAGE_AS_STRING( \
+					 "execution time of scope(\"%s\") in lines %d-%d is %ds-%dms-%dus-%dns" \
+					,timepoint_##name.descr \
+					,timepoint_##name.sline \
+					,__LINE__ \
+					,s.count() \
+					,ms.count() \
+					,us.count() \
+					,ns.count() \
+				) \
+			  ,::yal::level::info \
+			); \
+		} while(0)
+#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
+		if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name) \
 
 #else // !YAL_DISABLE_TIMEPOINT
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
 		do {} while(0)
-#	define YAL_PRINT_TIMEPOINT(log, name, resolution) \
+#	define YAL_PRINT_TIMEPOINT(log, name) \
 		do {} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name, resolution) \
+#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
 		do {} while(0)
 #endif // YAL_DISABLE_TIMEPOINT
 

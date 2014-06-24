@@ -116,8 +116,8 @@ int main() {
 #endif
 	YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
 	std::this_thread::sleep_for(std::chrono::microseconds(2));
-	YAL_PRINT_TIMEPOINT(test5, tp1, microseconds);
-	YAL_PRINT_TIMEPOINT_IF(test5, true, tp1, microseconds);
+	YAL_PRINT_TIMEPOINT(test5, tp1);
+	YAL_PRINT_TIMEPOINT_IF(test5, true, tp1);
 }
 
 /***************************************************************************/
