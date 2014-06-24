@@ -225,6 +225,8 @@ private:
 #	define YAL_FLUSH() \
 		::yal::logger::flush()
 
+#	define YAL_SESSION_DECLARE_VAR(var) \
+		::yal::session var
 #	define YAL_SESSION_CREATE(var, ...) \
 		::yal::session var = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE2(var, ...) \
