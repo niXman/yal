@@ -203,8 +203,8 @@ private:
 /***************************************************************************/
 
 /* usage:
- * std::cout << YAL_MESSAGE_AS_STRING("message: %s, %d, %s", "string1", 33, "string2") << std::endl;
- * std::string str = YAL_MESSAGE_AS_STRING("message: %s, %d, %s", "string1", 33, "string2");
+ * std::cout << YAL_FORMAT_MESSAGE("message: %s, %d, %s", "string1", 33, "string2") << std::endl;
+ * std::string str = YAL_FORMAT_MESSAGE_AS_STRING("message: %s, %d, %s", "string1", 33, "string2");
  */
 
 #define YAL_FORMAT_MESSAGE(...) \
