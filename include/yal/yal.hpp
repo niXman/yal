@@ -614,7 +614,7 @@ struct timepoint {
 		do {} while(0)
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do {} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
+#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
 		do {} while(0)
 #endif // YAL_DISABLE_TIMEPOINT
 
