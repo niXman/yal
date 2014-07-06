@@ -115,9 +115,8 @@ int main() {
 	YAL_ASSERT(false); // test fail
 #endif
 	YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
-	std::this_thread::sleep_for(std::chrono::microseconds(2));
+	std::this_thread::sleep_for(std::chrono::nanoseconds(3333333333));
 	YAL_PRINT_TIMEPOINT(test5, tp1);
-	YAL_PRINT_TIMEPOINT_IF(test5, true, tp1);
 }
 
 /***************************************************************************/

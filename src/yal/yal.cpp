@@ -369,7 +369,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	guard_t lock(pimpl->mutex);
 
 	if ( !name.empty() && name[0] == '/' )
-		throw std::runtime_error("yal: session name cannot be a full path name");
+		throw std::runtime_error("yal: session name cannot be a full path");
 	if ( !shift_after )
 		throw std::runtime_error("yal: shift_after can be 1 or greater");
 
@@ -382,7 +382,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 
 	const auto pos = name.find_last_of('/');
 	if ( pos != std::string::npos ) {
-		const std::string &path = pimpl->root_path+"/"+name.substr(0, pos);
+		const std::string path = pimpl->root_path+"/"+name.substr(0, pos);
 		//std::cout << "path:" << path << std::endl;
 		if ( !boost::filesystem::exists(path) )
 			boost::filesystem::create_directories(path);

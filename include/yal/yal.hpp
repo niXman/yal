@@ -216,31 +216,40 @@ private:
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_LOGGING
-#	define YAL_SET_ROOT_PATH(var) \
-		::yal::logger::root_path(var)
-#	define YAL_GET_ROOT_PATH(var) \
-		const std::string &var = ::yal::logger::root_path()
+#	define YAL_SET_ROOT_PATH(path) \
+		::yal::logger::root_path(path)
+
+#	define YAL_GET_ROOT_PATH() \
+		::yal::logger::root_path()
 #	define YAL_GET_ROOT_PATH2(var) \
-		var = ::yal::logger::root_path()
+		const std::string &var = YAL_GET_ROOT_PATH()
+#	define YAL_GET_ROOT_PATH3(var) \
+		var = YAL_GET_ROOT_PATH()
+
 #	define YAL_FLUSH() \
 		::yal::logger::flush()
 
 #	define YAL_SESSION_DECLARE_VAR(var) \
 		::yal::session var
+
 #	define YAL_SESSION_CREATE(var, ...) \
-		::yal::session var = ::yal::logger::create(__VA_ARGS__)
+		YAL_SESSION_DECLARE_VAR(var) = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE2(var, ...) \
 		var = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE3(...) \
 		::yal::logger::create(__VA_ARGS__)
+
 #	define YAL_SESSION_GET(var, name) \
 		::yal::session var = ::yal::logger::get(name)
 #	define YAL_SESSION_GET2(name) \
 		::yal::logger::get(name)
+
 #	define YAL_SESSION_EXISTS(name) \
 		(::yal::logger::get(name).get() != 0)
+
 #	define YAL_SESSION_FLUSH(log) \
 		log->flush()
+
 #	define YAL_SESSION_SET_LEVEL(log, lvl) \
 		log->set_level((lvl))
 #	define YAL_SESSION_SET_BUFFER(log, size) \
@@ -250,7 +259,7 @@ private:
 #	define YAL_SESSION_TO_TERM(log, flag, pref) \
 		log->to_term((flag), (pref))
 
-#	ifndef YAL_DISABLE_ERROR
+#	ifndef YAL_DISABLE_LOG_ERROR
 #		define YAL_LOG_ERROR(log, ...) \
 			do { \
 				if ( log->get_level() >= ::yal::level::error ) { \
@@ -279,7 +288,7 @@ private:
 			do { \
 				if ( (cond) ) YAL_GLOBAL_LOG_ERROR(__VA_ARGS__); \
 			} while(0)
-#	else
+#	else // YAL_DISABLE_LOG_ERROR
 #		define YAL_LOG_ERROR(log, ...) \
 			do {} while(0)
 #		define YAL_LOG_ERROR_IF(cond, log, ...) \
@@ -288,9 +297,9 @@ private:
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) \
 			do {} while(0)
-#	endif
+#	endif // YAL_DISABLE_LOG_ERROR
 
-#	ifndef YAL_DISABLE_WARNING
+#	ifndef YAL_DISABLE_LOG_WARNING
 #		define YAL_LOG_WARNING(log, ...) \
 			do { \
 				if ( log->get_level() >= ::yal::level::warning ) { \
@@ -319,7 +328,7 @@ private:
 			do { \
 				if ( (cond) ) YAL_GLOBAL_LOG_WARNING(__VA_ARGS__); \
 			} while(0)
-#	else
+#	else // YAL_DISABLE_LOG_WARNING
 #		define YAL_LOG_WARNING(log, ...) \
 			do {} while(0)
 #		define YAL_LOG_WARNING_IF(cond, log, ...) \
@@ -328,9 +337,9 @@ private:
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) \
 			do {} while(0)
-#	endif
+#	endif // YAL_DISABLE_LOG_WARNING
 
-#	ifndef YAL_DISABLE_DEBUG
+#	ifndef YAL_DISABLE_LOG_DEBUG
 #		define YAL_LOG_DEBUG(log, ...) \
 			do { \
 				if ( log->get_level() >= ::yal::level::debug ) { \
@@ -359,7 +368,7 @@ private:
 			do { \
 				if ( (cond) ) YAL_GLOBAL_LOG_DEBUG(__VA_ARGS__); \
 			} while(0)
-#	else
+#	else // YAL_DISABLE_LOG_DEBUG
 #		define YAL_LOG_DEBUG(log, ...) \
 			do {} while(0)
 #		define YAL_LOG_DEBUG_IF(cond, log, ...) \
@@ -368,9 +377,9 @@ private:
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) \
 			do {} while(0)
-#	endif
+#	endif // YAL_DISABLE_LOG_DEBUG
 
-#	ifndef YAL_DISABLE_INFO
+#	ifndef YAL_DISABLE_LOG_INFO
 #		define YAL_LOG_INFO(log, ...) \
 			do { \
 				if ( log->get_level() == ::yal::level::info ) { \
@@ -399,7 +408,7 @@ private:
 			do { \
 				if ( (cond) ) YAL_GLOBAL_LOG_INFO(__VA_ARGS__); \
 			} while(0)
-#	else
+#	else // YAL_DISABLE_LOG_INFO
 #		define YAL_LOG_INFO(log, ...) \
 			do {} while(0)
 #		define YAL_LOG_INFO_IF(cond, log, ...) \
@@ -408,20 +417,28 @@ private:
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_INFO_IF(cond, ...) \
 			do {} while(0)
-#	endif
+#	endif // YAL_DISABLE_LOG_INFO
 #else // YAL_DISABLE_LOGGING == true
-#	define YAL_SET_ROOT_PATH(var)
+#	define YAL_SET_ROOT_PATH(path)
 #	define YAL_GET_ROOT_PATH(var)
 #	define YAL_GET_ROOT_PATH2(var)
-#	define YAL_SESSION_CREATE(var, ...)
-#	define YAL_SESSION_CREATE2(...)
-#	define YAL_SESSION_CREATE3(...)
+#	define YAL_GET_ROOT_PATH3(var)
+
 #	define YAL_FLUSH()
+
+#	define YAL_SESSION_DECLARE_VAR(var)
+
+#	define YAL_SESSION_CREATE(var, ...)
+#	define YAL_SESSION_CREATE2(var, ...)
+#	define YAL_SESSION_CREATE3(...)
 
 #	define YAL_SESSION_GET(var, name)
 #	define YAL_SESSION_GET2(name)
+
 #	define YAL_SESSION_EXISTS(name)
+
 #	define YAL_SESSION_FLUSH(log)
+
 #	define YAL_SESSION_SET_LEVEL(log, lvl)
 #	define YAL_SESSION_SET_BUFFER(log, size)
 #	define YAL_SESSION_SET_UNBUFFERED(log)
@@ -567,11 +584,11 @@ struct timepoint {
 		const ::yal::detail::timepoint timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do { \
-			const auto diff = std::chrono::high_resolution_clock::now() - timepoint_##name.time; \
-			const auto ns   = std::chrono::duration_cast<std::chrono::nanoseconds>(diff); \
-			const auto s    = std::chrono::duration_cast<std::chrono::seconds>(ns); \
-			const auto ms   = std::chrono::duration_cast<std::chrono::milliseconds>(ns); \
-			const auto us   = std::chrono::duration_cast<std::chrono::microseconds>(ns); \
+			const auto d  = std::chrono::high_resolution_clock::now() - timepoint_##name.time; \
+			const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(d % std::chrono::microseconds(1)).count(); \
+			const auto us = std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count(); \
+			const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d % std::chrono::seconds(1)).count(); \
+			const auto s  = std::chrono::duration_cast<std::chrono::seconds>(d % std::chrono::minutes(1)).count(); \
 			\
 			log->write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
@@ -581,10 +598,10 @@ struct timepoint {
 					,timepoint_##name.descr \
 					,timepoint_##name.sline \
 					,__LINE__ \
-					,s.count() \
-					,ms.count() \
-					,us.count() \
-					,ns.count() \
+					,s \
+					,ms \
+					,us \
+					,ns \
 				) \
 			  ,::yal::level::info \
 			); \
