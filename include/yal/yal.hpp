@@ -581,27 +581,22 @@ struct timepoint {
 } // ns yal
 
 #	define YAL_MAKE_TIMEPOINT(name, descr) \
-		const ::yal::detail::timepoint timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
+		const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do { \
-			const auto d  = std::chrono::high_resolution_clock::now() - timepoint_##name.time; \
-			const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(d % std::chrono::microseconds(1)).count(); \
-			const auto us = std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count(); \
-			const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(d % std::chrono::seconds(1)).count(); \
-			const auto s  = std::chrono::duration_cast<std::chrono::seconds>(d % std::chrono::minutes(1)).count(); \
-			\
+			const auto d  = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
 			log->write( \
 				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 			  ,__PRETTY_FUNCTION__ \
 			  ,YAL_FORMAT_MESSAGE_AS_STRING( \
 					 "execution time of scope(\"%s\") in lines %d-%d is %ds-%dms-%dus-%dns" \
-					,timepoint_##name.descr \
-					,timepoint_##name.sline \
+					,_yal_timepoint_##name.descr \
+					,_yal_timepoint_##name.sline \
 					,__LINE__ \
-					,s \
-					,ms \
-					,us \
-					,ns \
+					,std::chrono::duration_cast<std::chrono::seconds>(d % std::chrono::minutes(1)).count() \
+					,std::chrono::duration_cast<std::chrono::milliseconds>(d % std::chrono::seconds(1)).count() \
+					,std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count() \
+					,std::chrono::duration_cast<std::chrono::nanoseconds>(d % std::chrono::microseconds(1)).count() \
 				) \
 			  ,::yal::level::info \
 			); \
