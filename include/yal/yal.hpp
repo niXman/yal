@@ -593,10 +593,10 @@ struct timepoint {
 					,_yal_timepoint_##name.descr \
 					,_yal_timepoint_##name.sline \
 					,__LINE__ \
-					,std::chrono::duration_cast<std::chrono::seconds>(d % std::chrono::minutes(1)).count() \
-					,std::chrono::duration_cast<std::chrono::milliseconds>(d % std::chrono::seconds(1)).count() \
+					,std::chrono::duration_cast<std::chrono::seconds     >(d % std::chrono::minutes(1)     ).count() \
+					,std::chrono::duration_cast<std::chrono::milliseconds>(d % std::chrono::seconds(1)     ).count() \
 					,std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count() \
-					,std::chrono::duration_cast<std::chrono::nanoseconds>(d % std::chrono::microseconds(1)).count() \
+					,std::chrono::duration_cast<std::chrono::nanoseconds >(d % std::chrono::microseconds(1)).count() \
 				) \
 			  ,::yal::level::info \
 			); \
