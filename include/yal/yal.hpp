@@ -586,9 +586,9 @@ struct timepoint {
 		do { \
 			const auto d  = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
 			log->write( \
-				__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-			  ,__PRETTY_FUNCTION__ \
-			  ,YAL_FORMAT_MESSAGE_AS_STRING( \
+				 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+				,__PRETTY_FUNCTION__ \
+				,YAL_FORMAT_MESSAGE_AS_STRING( \
 					 "execution time of scope(\"%s\") in lines %d-%d is %ds-%dms-%dus-%dns" \
 					,_yal_timepoint_##name.descr \
 					,_yal_timepoint_##name.sline \
@@ -598,10 +598,10 @@ struct timepoint {
 					,std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count() \
 					,std::chrono::duration_cast<std::chrono::nanoseconds >(d % std::chrono::microseconds(1)).count() \
 				) \
-			  ,::yal::level::info \
+			  	,::yal::level::info \
 			); \
 		} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
+#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
 		if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name) \
 
 #else // !YAL_DISABLE_TIMEPOINT
@@ -609,7 +609,7 @@ struct timepoint {
 		do {} while(0)
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do {} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
+#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
 		do {} while(0)
 #endif // YAL_DISABLE_TIMEPOINT
 
