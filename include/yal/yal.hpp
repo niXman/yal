@@ -138,80 +138,65 @@ private:
 
 /***************************************************************************/
 
-#define YAL_SEPARATOR %
+#define __YAL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
+#define __YAL_HAS_COMMA(...) __YAL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+#define __YAL__TRIGGER_PARENTHESIS_(...) ,
 
-#define YAL_GET_ARGS_LIST(...) \
-	BOOST_PP_CAT(YAL_GET_ARGS_LIST_, YAL_VA_MORE1_ARGS(__VA_ARGS__))(__VA_ARGS__)
-
-#define YAL_GET_ARGS_LIST_1(F_, ...) \
-	YAL_SEPARATOR YAL_GET(__VA_ARGS__)
-
-#define YAL_GET_ARGS_LIST_0(...)
-
-#define YAL_GET_FORMAT_STRING(F_, ...) \
-	F_
-
-#define YAL_RSEQ_N() \
-	63,62,61,60,59,58,57,56,55,54, \
-	53,52,51,50,49,48,47,46,45,44, \
-	43,42,41,40,39,38,37,36,35,34, \
-	33,32,31,30,29,28,27,26,25,24, \
-	23,22,21,20,19,18,17,16,15,14, \
-	13,12,11,10,9,8,7,6,5,4,3,2,1,0
-
-#define YAL_NARG(...) \
-	YAL_NARG_(__VA_ARGS__, YAL_RSEQ_N())
-
-#define YAL_NARG_(...) \
-	YAL_VA_ARG_N(__VA_ARGS__)
-
-#define YAL_VA_ARG_N( \
-		_1, _2 ,_3, _4, _5, _6, _7, _8, _9, _10,_11,_12,_13,_14,_15,_16, \
-		_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,_31,_32, \
-		_33,_34,_35,_36,_37,_38,_39,_40,_41,_42,_43,_44,_45,_46,_47,_48, \
-		_49,_50,_51,_52,_53,_54,_55,_56,_57,_58,_59,_60,_61,_62,_63,  N, ... \
-	) N
-
-#define YAL_VA_MORE1_ARGS(...) \
-	YAL_VA_ARG_N(__VA_ARGS__ \
-		,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 \
-		,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0 \
+#define __YAL_ISEMPTY(...) \
+	__YAL__ISEMPTY( \
+		/* test if there is just one argument, eventually an empty one */ \
+		__YAL_HAS_COMMA(__VA_ARGS__), \
+		/* test if _TRIGGER_PARENTHESIS_ together with the argument adds a comma */ \
+		__YAL_HAS_COMMA(__YAL__TRIGGER_PARENTHESIS_ __VA_ARGS__),                 \
+		/* test if the argument together with a parenthesis adds a comma */ \
+		__YAL_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
+		/* test if placing it between _TRIGGER_PARENTHESIS_ and the parenthesis adds a comma */ \
+		__YAL_HAS_COMMA(__YAL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
 	)
 
-#define YAL_GET_1(item1, ...) (item1)
-#define YAL_GET_2(item1, ...) (item1) YAL_SEPARATOR YAL_GET_1(__VA_ARGS__)
-#define YAL_GET_3(item1, ...) (item1) YAL_SEPARATOR YAL_GET_2(__VA_ARGS__)
-#define YAL_GET_4(item1, ...) (item1) YAL_SEPARATOR YAL_GET_3(__VA_ARGS__)
-#define YAL_GET_5(item1, ...) (item1) YAL_SEPARATOR YAL_GET_4(__VA_ARGS__)
-#define YAL_GET_6(item1, ...) (item1) YAL_SEPARATOR YAL_GET_5(__VA_ARGS__)
-#define YAL_GET_7(item1, ...) (item1) YAL_SEPARATOR YAL_GET_6(__VA_ARGS__)
-#define YAL_GET_8(item1, ...) (item1) YAL_SEPARATOR YAL_GET_7(__VA_ARGS__)
-#define YAL_GET_9(item1, ...) (item1) YAL_SEPARATOR YAL_GET_8(__VA_ARGS__)
-#define YAL_GET_10(item1, ...) (item1) YAL_SEPARATOR YAL_GET_9(__VA_ARGS__)
-#define YAL_GET_11(item1, ...) (item1) YAL_SEPARATOR YAL_GET_10(__VA_ARGS__)
-#define YAL_GET_12(item1, ...) (item1) YAL_SEPARATOR YAL_GET_11(__VA_ARGS__)
-#define YAL_GET_13(item1, ...) (item1) YAL_SEPARATOR YAL_GET_12(__VA_ARGS__)
-#define YAL_GET_14(item1, ...) (item1) YAL_SEPARATOR YAL_GET_13(__VA_ARGS__)
-#define YAL_GET_15(item1, ...) (item1) YAL_SEPARATOR YAL_GET_14(__VA_ARGS__)
-#define YAL_GET_16(item1, ...) (item1) YAL_SEPARATOR YAL_GET_15(__VA_ARGS__)
-#define YAL_GET_17(item1, ...) (item1) YAL_SEPARATOR YAL_GET_16(__VA_ARGS__)
-#define YAL_GET_18(item1, ...) (item1) YAL_SEPARATOR YAL_GET_17(__VA_ARGS__)
-#define YAL_GET_19(item1, ...) (item1) YAL_SEPARATOR YAL_GET_18(__VA_ARGS__)
-#define YAL_GET_20(item1, ...) (item1) YAL_SEPARATOR YAL_GET_19(__VA_ARGS__)
-#define YAL_GET(...) BOOST_PP_CAT(YAL_GET_, YAL_NARG(__VA_ARGS__))(__VA_ARGS__)
+#define __YAL_PASTE5(_0, _1, _2, _3, _4) \
+	_0 ## _1 ## _2 ## _3 ## _4
+
+#define __YAL__ISEMPTY(_0, _1, _2, _3) \
+	__YAL_HAS_COMMA(__YAL_PASTE5(__YAL__IS_EMPTY_CASE_, _0, _1, _2, _3))
+
+#define __YAL__IS_EMPTY_CASE_0001 \
+	,
+
+#define __YAL_TUPLE_IS_EMPTY(...) \
+	__YAL_ISEMPTY(__VA_ARGS__)
+
+/***************************************************************************/
+
+#define __YAL_PASTE_ELEM(unused, idx, args) \
+	% (BOOST_PP_TUPLE_ELEM(idx, args))
+
+#define __YAL_FORMAT_MESSAGE_WITHOUT_ARGS(...)
+
+#define __YAL_FORMAT_MESSAGE_WITH_ARGS(...) \
+	BOOST_PP_REPEAT( \
+		 BOOST_PP_TUPLE_SIZE((__VA_ARGS__)) \
+		,__YAL_PASTE_ELEM \
+		,(__VA_ARGS__) \
+	)
 
 /***************************************************************************/
 
 /* usage:
- * std::cout << YAL_FORMAT_MESSAGE("message: %s, %d, %s", "string1", 33, "string2") << std::endl;
- * std::string str = YAL_FORMAT_MESSAGE_AS_STRING("message: %s, %d, %s", "string1", 33, "string2");
+ * std::cout << YAL_FORMAT_MESSAGE("message: %1%, %2%, %3%", "string1", 33, "string2") << std::endl;
+ * std::string str = YAL_FORMAT_MESSAGE_AS_STRING("message: %1%, %2%, %3%", "string1", 33, "string2");
  */
 
-#define YAL_FORMAT_MESSAGE(...) \
-	boost::format(YAL_GET_FORMAT_STRING(__VA_ARGS__,)) YAL_GET_ARGS_LIST(__VA_ARGS__)
+#define YAL_FORMAT_MESSAGE(fmt, ...) \
+	boost::format(fmt) \
+	BOOST_PP_IF( \
+		 __YAL_TUPLE_IS_EMPTY(__VA_ARGS__) \
+		,__YAL_FORMAT_MESSAGE_WITHOUT_ARGS \
+		,__YAL_FORMAT_MESSAGE_WITH_ARGS \
+	)(__VA_ARGS__)
 
-#define YAL_FORMAT_MESSAGE_AS_STRING(...) \
-	(YAL_FORMAT_MESSAGE(__VA_ARGS__)).str()
+#define YAL_FORMAT_MESSAGE_AS_STRING(fmt, ...) \
+	(YAL_FORMAT_MESSAGE(fmt, __VA_ARGS__)).str()
 
 /***************************************************************************/
 
@@ -546,7 +531,7 @@ private:
 				char datebuf[32] = "\0"; \
 				fprintf( \
 					 stderr \
-					,"[%s][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%s]: expression \"" #expr "\" is false\n" \
+					,"[%1%][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%2%]: expression \"" #expr "\" is false\n" \
 					,::yal::detail::session::usec_date_str(datebuf, sizeof(datebuf)) \
 					,__PRETTY_FUNCTION__ \
 				); \
@@ -598,7 +583,7 @@ struct timepoint {
 					,std::chrono::duration_cast<std::chrono::microseconds>(d % std::chrono::milliseconds(1)).count() \
 					,std::chrono::duration_cast<std::chrono::nanoseconds >(d % std::chrono::microseconds(1)).count() \
 				) \
-			  	,::yal::level::info \
+				,::yal::level::info \
 			); \
 		} while(0)
 #	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
