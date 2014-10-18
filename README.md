@@ -87,7 +87,7 @@ YAL_LOG_INFO(session1, "%1%-%2%-%3%", 1, "2", 3)
 2. `YAL_SESSION_SET_LEVEL(log, lvl)` - устанавливает 'error level. Позволяет отбросить логирование всех 'error level' которые имеют значение ниже указанного.
 3. `YAL_SESSION_SET_BUFFER(log, size)` - устанавливает размер буфера ввода-вывода. (см. setvbuf())
 4. `YAL_SESSION_SET_UNBUFFERED(log)` - указывает не использовать буферизацию ввода-вывода.
-5. `YAL_SESSION_TO_TERM(log, flag, pref)` - указывает(если flag == true) производить вывод и на терминал. `pref` - префикс, используемый для идентифицирования вывода(терминал-то у нас один).
+5. `YAL_SESSION_TO_TERM(log, flag, pref)` - указывает(если `flag == true`) производить вывод и на терминал. `pref` - префикс, используемый для идентифицирования вывода(терминал-то у нас один).
 6. `YAL_SESSION_GET(var, name)` - получить объект сессии имея ее имя.
 7. `YAL_SESSION_EXISTS(name)` - возвращает `true` если сессия с указанным именем существует, иначе `false`.
 
@@ -106,4 +106,4 @@ std::cout << YAL_MESSAGE_AS_STRING("%s-%02d", "message", 2) << std::endl;
 Допустим, ваше приложение стало нереально стабильным, и вам более не нужно логировать такие 'error level' как info/debug. Для этого, вы можете повысить нижний 'error level' до уровня 'warning'. Но при этом, макросы `YAL_LOG_INFO()` и `YAL_LOG_DEBUG()` все равно будут "разворачиваться" в код и создавать некоторый оверхед. Чтоб этого не происходило, воспользуйтесь соответствующими макросами `YAL_DISABLE_INFO`,`YAL_DISABLE_DEBUG`,`YAL_DISABLE_WARNING`,`YAL_DISABLE_ERROR`. Просто добавьте нужные из них в опции компилятора.
 Либо же вы можете полностью отключить логирование вашего приложения, добавив в опции компилятора `YAL_DISABLE_LOGGING`.
 
-YAL зависит от boost.system и boost.filesystem.
+YAL зависит от `boost.format`, `boost.system` и `boost.filesystem`.
