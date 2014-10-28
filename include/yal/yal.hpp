@@ -138,6 +138,7 @@ private:
 
 /***************************************************************************/
 
+// based on the: http://gustedt.wordpress.com/2010/06/08/detect-empty-macro-arguments
 #define __YAL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
 #define __YAL_HAS_COMMA(...) __YAL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 #define __YAL__TRIGGER_PARENTHESIS_(...) ,
