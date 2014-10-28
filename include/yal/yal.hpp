@@ -141,9 +141,12 @@ private:
 #define __YAL_ARG16(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
 #define __YAL_HAS_COMMA(...) __YAL_ARG16(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 #define __YAL__TRIGGER_PARENTHESIS_(...) ,
+#define __YAL_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
+#define __YAL__IS_EMPTY_CASE_0001 ,
+#define __YAL__IS_EMPTY(_0, _1, _2, _3) __YAL_HAS_COMMA(__YAL_PASTE5(__YAL__IS_EMPTY_CASE_, _0, _1, _2, _3))
 
-#define __YAL_ISEMPTY(...) \
-	__YAL__ISEMPTY( \
+#define __YAL_TUPLE_IS_EMPTY(...) \
+	__YAL__IS_EMPTY( \
 		/* test if there is just one argument, eventually an empty one */ \
 		__YAL_HAS_COMMA(__VA_ARGS__), \
 		/* test if _TRIGGER_PARENTHESIS_ together with the argument adds a comma */ \
@@ -153,18 +156,6 @@ private:
 		/* test if placing it between _TRIGGER_PARENTHESIS_ and the parenthesis adds a comma */ \
 		__YAL_HAS_COMMA(__YAL__TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
 	)
-
-#define __YAL_PASTE5(_0, _1, _2, _3, _4) \
-	_0 ## _1 ## _2 ## _3 ## _4
-
-#define __YAL__ISEMPTY(_0, _1, _2, _3) \
-	__YAL_HAS_COMMA(__YAL_PASTE5(__YAL__IS_EMPTY_CASE_, _0, _1, _2, _3))
-
-#define __YAL__IS_EMPTY_CASE_0001 \
-	,
-
-#define __YAL_TUPLE_IS_EMPTY(...) \
-	__YAL_ISEMPTY(__VA_ARGS__)
 
 /***************************************************************************/
 

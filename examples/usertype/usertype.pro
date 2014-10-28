@@ -17,3 +17,6 @@ LIBS += \
 SOURCES += main.cpp \
 	 ../../src/yal/yal.cpp
 
+HEADERS += \
+    ../../include/yal/yal.hpp
+
