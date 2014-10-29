@@ -40,6 +40,15 @@
 #include <algorithm>
 #include <mutex>
 
+#define _STRINGIZE(x) \
+	#x
+
+#define STRINGIZE(x) \
+	_STRINGIZE(x)
+
+#define YAL_THROW(msg) \
+	throw std::runtime_error(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): ") + msg)
+
 namespace yal {
 
 /***************************************************************************/
@@ -125,7 +134,7 @@ struct session::impl {
 
 	static const char* datetime(const resolution res, char *buf, const std::size_t size) {
 		if ( size < 32 )
-			throw std::runtime_error("yal: buffer's size for date-time format should be greater or equal to 32 bytes");
+			YAL_THROW("buffer's size for date-time format should be greater or equal to 32 bytes");
 
 		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
@@ -173,7 +182,7 @@ struct session::impl {
 		file = std::fopen(pathbuf, "wb");
 		if ( !file ) {
 			int error = errno;
-			throw std::runtime_error("yal: cannot create logfile \"" + std::string(pathbuf) + "\" with errno="+std::to_string(error));
+			YAL_THROW("cannot create logfile \"" + std::string(pathbuf) + "\" with errno="+std::to_string(error));
 		}
 	}
 
@@ -218,7 +227,7 @@ struct session::impl {
 
 		if ( writen < 0 ) {
 			int error = errno;
-			throw std::runtime_error("yal: cannot write to logfile with errno="+std::to_string(error));
+			YAL_THROW("cannot write to logfile with errno="+std::to_string(error));
 		}
 
 		writen_bytes += writen;
@@ -227,7 +236,7 @@ struct session::impl {
 
 			if ( std::fclose(file) != 0 ) {
 				int error = errno;
-				throw std::runtime_error("yal: cannot close logfile with errno="+std::to_string(error));
+				YAL_THROW("cannot close logfile with errno="+std::to_string(error));
 			}
 
 			volume_number += 1;
@@ -371,14 +380,14 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	guard_t lock(pimpl->mutex);
 
 	if ( !name.empty() && name[0] == '/' )
-		throw std::runtime_error("yal: session name cannot be a full path");
+		YAL_THROW("session name can't be a full path");
 	if ( !shift_after )
-		throw std::runtime_error("yal: shift_after can be 1 or greater");
+		YAL_THROW("shift_after can be 1 or greater");
 
 	pimpl->iterate(
 		[&name](yal::session s) {
 			if ( s->name() == name )
-				throw std::runtime_error("yal: session \""+name+"\" already exists");
+				YAL_THROW("session \""+name+"\" already exists");
 		}
 	);
 
