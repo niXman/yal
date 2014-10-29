@@ -199,20 +199,22 @@ struct session::impl {
 							: "disabled"
 		);
 
+		static const char *fmt0 = "[%s][%s][%s][%s]: %s\n";
+		static const char *fmt1 = "<%s>[%s][%s][%s][%s]: %s\n";
 		char datebuf[64] = "\0";
 		const char *datestr = datetime(usec_res, datebuf, sizeof(datebuf));
 
 		if ( toterm ) {
 			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
 			if ( prefix.empty() ) {
-				std::fprintf(termlog, "[%s][%s][%s][%s]: %s\n", datestr, levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, fmt0, datestr, levelstr, fileline, func, data.c_str());
 			} else {
-				std::fprintf(termlog, "<%s>[%s][%s][%s][%s]: %s\n", prefix.c_str(), datestr, levelstr, fileline, func, data.c_str());
+				std::fprintf(termlog, fmt1, prefix.c_str(), datestr, levelstr, fileline, func, data.c_str());
 			}
 			std::fflush(termlog);
 		}
 
-		const int writen = std::fprintf(file, "[%s][%s][%s][%s]: %s\n", datestr, levelstr, fileline, func, data.c_str());
+		const int writen = std::fprintf(file, fmt0, datestr, levelstr, fileline, func, data.c_str());
 
 		if ( writen < 0 ) {
 			int error = errno;
