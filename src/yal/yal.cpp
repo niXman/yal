@@ -102,9 +102,14 @@ struct session::impl {
 
 		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
-			auto filename = fs_beg->path().filename().string();
-			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(*fs_beg) )
+			const auto filename = fs_beg->path().filename().string();
+			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(filename) )
 				continue;
+
+			if ( boost::filesystem::file_size(filename) == 0 ) {
+				boost::filesystem::remove(filename);
+				continue;
+			}
 
 			if ( filename.find(logfname+"-") == std::string::npos )
 				continue;
@@ -113,7 +118,7 @@ struct session::impl {
 			if ( beg == filename.end() || beg+1 == filename.end() )
 				continue;
 
-			std::advance(beg, 1);
+			++beg;
 
 			if ( !std::isdigit(*beg) )
 				continue;
@@ -122,7 +127,7 @@ struct session::impl {
 			for ( ; std::isdigit(*end); ++end)
 				;
 
-			const std::size_t num = std::stoul(std::string(beg, end)) + 1;
+			const auto num = std::stoul(std::string(beg, end)) + 1;
 			if ( num > volume_number )
 				volume_number = num;
 		}
