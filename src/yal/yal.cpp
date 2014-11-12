@@ -107,7 +107,11 @@ struct session::impl {
 				continue;
 
 			if ( boost::filesystem::file_size(filename) == 0 ) {
-				boost::filesystem::remove(filename);
+				boost::system::error_code ec;
+				boost::filesystem::remove(filename, ec);
+				if ( ec )
+					YAL_THROW("can't remove empty volume(" +filename+ "): " + ec.message());
+
 				continue;
 			}
 
@@ -374,8 +378,12 @@ const std::string &session_manager::root_path() const {
 void session_manager::root_path(const std::string &path) {
 	guard_t lock(pimpl->mutex);
 
-	if ( !boost::filesystem::exists(path) )
-		boost::filesystem::create_directories(path);
+	if ( !boost::filesystem::exists(path) ) {
+		boost::system::error_code ec;
+		boost::filesystem::create_directories(path, ec);
+		if ( ec )
+			YAL_THROW("can't create directory(" +path+ "): " + ec.message());
+	}
 
 	pimpl->root_path = path;
 }
@@ -400,8 +408,12 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 	if ( pos != std::string::npos ) {
 		const std::string path = pimpl->root_path+"/"+name.substr(0, pos);
 		//std::cout << "path:" << path << std::endl;
-		if ( !boost::filesystem::exists(path) )
-			boost::filesystem::create_directories(path);
+		if ( !boost::filesystem::exists(path) ) {
+			boost::system::error_code ec;
+			boost::filesystem::create_directories(path, ec);
+			if ( ec )
+				YAL_THROW("can't create directory(" +path+ "): " + ec.message());
+		}
 	}
 
 	yal::session session = std::make_shared<detail::session>(pimpl->root_path, name, volume_size, shift_after);
