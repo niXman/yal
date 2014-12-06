@@ -102,15 +102,18 @@ struct session::impl {
 
 		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
+			const auto filepath = fs_beg->path().string();
 			const auto filename = fs_beg->path().filename().string();
-			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(filename) )
+			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(filepath) )
 				continue;
 
-			if ( boost::filesystem::file_size(filename) == 0 ) {
+			boost::system::error_code ec;
+			const auto filesize = boost::filesystem::file_size(filepath, ec);
+			if ( ec ) YAL_THROW("can't get filesize(" +filepath+ "): " + ec.message());
+			if ( filesize == 0 ) {
 				boost::system::error_code ec;
-				boost::filesystem::remove(filename, ec);
-				if ( ec )
-					YAL_THROW("can't remove empty volume(" +filename+ "): " + ec.message());
+				boost::filesystem::remove(filepath, ec);
+				if ( ec ) YAL_THROW("can't remove empty volume(" +filepath+ "): " + ec.message());
 
 				continue;
 			}
