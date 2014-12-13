@@ -107,6 +107,9 @@ struct session::impl {
 			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(filepath) )
 				continue;
 
+			if ( filename.find(logfname+"-") == std::string::npos )
+				continue;
+
 			boost::system::error_code ec;
 			const auto filesize = boost::filesystem::file_size(filepath, ec);
 			if ( ec ) YAL_THROW("can't get filesize(" +filepath+ "): " + ec.message());
@@ -117,9 +120,6 @@ struct session::impl {
 
 				continue;
 			}
-
-			if ( filename.find(logfname+"-") == std::string::npos )
-				continue;
 
 			auto beg = std::find(filename.begin(), filename.end(), '-');
 			if ( beg == filename.end() || beg+1 == filename.end() )
