@@ -63,11 +63,11 @@ using guard_t = std::lock_guard<mutex_t>;
 /***************************************************************************/
 
 struct session::impl {
-	impl(const std::string &_path, const std::string &_name, std::size_t _volume_size, std::size_t _shift_after)
-		:path(_path)
-		,name(_name)
-		,volume_size(_volume_size)
-		,shift_after(_shift_after)
+	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after)
+		:path(path)
+		,name(name)
+		,volume_size(volume_size)
+		,shift_after(shift_after)
 		,file(0)
 		,toterm(false)
 		,prefix()
@@ -75,8 +75,12 @@ struct session::impl {
 		,writen_bytes(0)
 		,volume_number(0)
 	{
-		volume_number = get_last_volume_number(name, path);
-		create_volume();
+		if ( name != "disable" ) {
+			volume_number = get_last_volume_number(name, path);
+			create_volume();
+		} else {
+			level = yal::disable;
+		}
 	}
 
 	~impl() {
@@ -184,7 +188,7 @@ struct session::impl {
 		std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
 		const char *pos = std::strchr(name.c_str(), '.');
-		if ( ! pos ) {
+		if ( !pos ) {
 			std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datetime(sec_res, datebuf, sizeof(datebuf)));
 		} else {
 			std::strcat(fmt, "%s");
