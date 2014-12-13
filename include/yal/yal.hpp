@@ -523,7 +523,7 @@ private:
 				char datebuf[32] = "\0"; \
 				fprintf( \
 					 stderr \
-					,"[%1%][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%2%]: expression \"" #expr "\" is false\n" \
+					,"[%s][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%s]: expression \"" #expr "\" is false\n" \
 					,::yal::detail::session::usec_date_str(datebuf, sizeof(datebuf)) \
 					,__PRETTY_FUNCTION__ \
 				); \
