@@ -19,5 +19,4 @@ SOURCES += \
 	../../src/yal/yal.cpp
 
 HEADERS += \
-    ../../include/yal/yal.hpp
-
+	../../include/yal/yal.hpp

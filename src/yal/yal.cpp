@@ -84,7 +84,8 @@ struct session::impl {
 	}
 
 	~impl() {
-		std::fclose(file);
+		if ( file )
+			std::fclose(file);
 	}
 
 	static std::size_t get_last_volume_number(const std::string &name, const std::string &path) {
@@ -203,7 +204,8 @@ struct session::impl {
 	}
 
 	void set_buffer(std::size_t size) {
-		std::setvbuf(file, 0, (size == 0 ? _IONBF : _IOFBF), size);
+		if ( file )
+			std::setvbuf(file, 0, (size == 0 ? _IONBF : _IOFBF), size);
 	}
 
 	void to_term(bool ok, const std::string &pref) {
