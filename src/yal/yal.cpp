@@ -213,10 +213,6 @@ struct session::impl {
 		prefix = pref;
 	}
 
-	void set_level(const yal::level lvl) {
-		level = lvl;
-	}
-
 	void write(const char *fileline, const char *func, const std::string &data, const yal::level lvl) {
 		const char *levelstr = (
 			lvl == yal::info ? "info   "
@@ -313,10 +309,7 @@ void session::to_term(const bool ok, const std::string &pref) {
 	pimpl->to_term(ok, pref);
 }
 
-void session::set_level(const level lvl) {
-	pimpl->set_level(lvl);
-}
-
+void session::set_level(const level lvl) { pimpl->level = lvl; }
 level session::get_level() const { return pimpl->level; }
 
 void session::write(const char *fileline, const char *func, const std::string &data, const level lvl) {
