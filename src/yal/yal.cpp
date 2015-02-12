@@ -606,7 +606,8 @@ void session_manager::write(
 
 	pimpl->iterate(
 		[fileline, fileline_len, func, func_len, &data, lvl](yal::session s) {
-			s->write(fileline, fileline_len, func, func_len, data, lvl);
+			if ( s->get_level() >= lvl )
+				s->write(fileline, fileline_len, func, func_len, data, lvl);
 		}
 	);
 }

@@ -21,4 +21,7 @@ SOURCES += \
 	../../src/yal/datetime.cpp
 
 HEADERS += \
-	../../include/yal/yal.hpp
+	../../include/yal/yal.hpp \
+    ../../include/yal/datetime.hpp \
+    ../../include/yal/options.hpp \
+    ../../include/yal/throw.hpp
