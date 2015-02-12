@@ -280,8 +280,8 @@ private:
 		YAL_SESSION_DECLARE_VAR(var) = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE2(var, ...) \
 		var = ::yal::logger::create(__VA_ARGS__)
-#	define YAL_SESSION_CREATE3(...) \
-		::yal::logger::create(__VA_ARGS__)
+#	define YAL_SESSION_CREATE3(var, ...) \
+		var(::yal::logger::create(__VA_ARGS__))
 
 #	define YAL_SESSION_GET(var, name) \
 		::yal::session var = ::yal::logger::get(name)
@@ -490,7 +490,7 @@ private:
 
 #	define YAL_SESSION_CREATE(var, ...)
 #	define YAL_SESSION_CREATE2(var, ...)
-#	define YAL_SESSION_CREATE3(...)
+#	define YAL_SESSION_CREATE3(var, ...)
 
 #	define YAL_SESSION_GET(var, name)
 #	define YAL_SESSION_GET2(name)
