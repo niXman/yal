@@ -29,40 +29,22 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <yal/yal.hpp>
+#ifndef _yal__options_hpp
+#define _yal__options_hpp
 
-#include <boost/filesystem.hpp>
+namespace yal {
 
-#include <vector>
-#include <string>
+enum options {
+	 sec_res           = 1<<0 // seconds date-time resolution (by default)
+	,usec_res          = 1<<1 // microseconds date-time resolution
+	,nsec_res          = 1<<2 // nanoseconds date-time resolution
+	,remove_empty_logs = 1<<3 // remove empty log volumes if exists
+	,unbuffered        = 1<<4
+	,flush_each_record = 1<<5
+	,fsync_each_record = 1<<6
+	,compress          = 1<<7 // compress log volumes
+};
 
-/***************************************************************************/
+} // ns yal
 
-std::vector<std::string>
-get_list_of_files() {
-	std::vector<std::string> res;
-
-	boost::filesystem::directory_iterator cur("./"), end;
-
-	for ( ;cur != end; ++cur ) {
-		res.push_back(cur->path().string());
-	}
-
-	return res;
-}
-
-/***************************************************************************/
-
-int main() {
-	const std::vector<std::string> src = get_list_of_files();
-
-	YAL_SESSION_CREATE(session1, "disable");
-	YAL_SESSION_TO_TERM(session1, true, "terminal");
-
-	const std::vector<std::string> dst = get_list_of_files();
-
-	const bool ok = (src == dst);
-	YAL_ASSERT(ok);
-}
-
-/***************************************************************************/
+#endif // _yal__options_hpp

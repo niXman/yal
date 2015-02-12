@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013,2014 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -32,8 +32,9 @@
 #ifndef _yal__yal_hpp
 #define _yal__yal_hpp
 
-#include <climits>
-#include <memory>
+#include <yal/throw.hpp>
+#include <yal/options.hpp>
+#include <yal/datetime.hpp>
 
 #include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
@@ -44,9 +45,40 @@
 #include <boost/preprocessor/comparison/equal.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
+#include <climits>
+#include <memory>
+
+/***************************************************************************/
+
+#define YAL_DATE_FORMAT_DMY (0) // day.month.year
+#define YAL_DATE_FORMAT_YMD (1) // year.month.day
+#define YAL_DATE_FORMAT_MDY (2) // month.day.year
+
+#ifndef YAL_DATE_FORMAT
+#	define YAL_DATE_FORMAT YAL_DATE_FORMAT_YMD
+#endif // YAL_DATE_FORMAT
+
+#if !(YAL_DATE_FORMAT == YAL_DATE_FORMAT_DMY || \
+		YAL_DATE_FORMAT == YAL_DATE_FORMAT_YMD || \
+		YAL_DATE_FORMAT == YAL_DATE_FORMAT_MDY)
+#error "bad YAL_DATE_FORMAT"
+#endif
+
+/***************************************************************************/
+
+#ifndef YAL_MAX_VOLUME_NUMBER
+#	define YAL_MAX_VOLUME_NUMBER 99999
+#endif // YAL_MAX_VOLUME_NUMBER
+
+#ifndef YAL_COMPRESSION_LEVEL
+#	define YAL_COMPRESSION_LEVEL 1
+#endif // YAL_COMPRESSION_LEVEL
+
 /***************************************************************************/
 
 namespace yal {
+
+/***************************************************************************/
 
 enum level {
 	 info    = 4
@@ -56,17 +88,27 @@ enum level {
 	,disable = 0
 };
 
-namespace detail {
+/***************************************************************************/
+
+// constants
+enum {
+	 level_str_len= 8
+};
+
+const char* level_str(const level lvl);
 
 /***************************************************************************/
 
-struct session: private boost::noncopyable {
-	static const char* sec_date_str(char *buf, const std::size_t size);
-	static const char* usec_date_str(char *buf, const std::size_t size);
-	static const char* level_str(level lvl);
+namespace detail {
 
-	session(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after);
-	~session();
+struct session: private boost::noncopyable {
+	session(
+		 const std::string &path
+		,const std::string &name
+		,std::size_t volume_size
+		,uint32_t opts
+	);
+	virtual ~session();
 
 	const std::string& name() const;
 
@@ -76,7 +118,14 @@ struct session: private boost::noncopyable {
 	void set_level(const level lvl);
 	yal::level get_level() const;
 
-	void write(const char *fileline, const char *func, const std::string &data, level lvl);
+	void write(
+		 const char *fileline
+		,const std::size_t fileline_len
+		,const char *func
+		,const std::size_t func_len
+		,const std::string &data
+		,const level lvl
+	);
 	void flush();
 
 private:
@@ -87,21 +136,28 @@ private:
 /***************************************************************************/
 
 struct session_manager: private boost::noncopyable {
+	session_manager();
+	virtual ~session_manager();
+
 	const std::string& root_path() const;
 	void root_path(const std::string& path);
 
 	std::shared_ptr<session>
-	create(const std::string &name, std::size_t volume_size, std::size_t shift_after);
+	create(const std::string &name, std::size_t volume_size, uint32_t opts);
 
-	void write(const char *fileline, const char *func, const std::string &data, level lvl);
+	void write(
+		 const char *fileline
+		,const std::size_t fileline_len
+		,const char *func
+		,const std::size_t func_len
+		,const std::string &data
+		,const level lvl
+	);
 
 	std::shared_ptr<session>
 	get(const std::string &name) const;
 
 	void flush();
-
-	session_manager();
-	~session_manager();
 
 private:
 	struct impl;
@@ -120,11 +176,22 @@ struct logger: private boost::noncopyable {
 	static void root_path(const std::string &path);
 	static const std::string& root_path();
 
-	static yal::session create(const std::string &name, std::size_t volume_size = UINT_MAX, std::size_t shift_after = 9999);
+	static yal::session create(
+		 const std::string &name
+		,std::size_t volume_size = UINT_MAX
+		,std::uint32_t opts = 0
+	);
 
 	static yal::session get(const std::string &name);
 
-	static void write(const char *fileline, const char *func, const std::string &data, level lvl);
+	static void write(
+		 const char *fileline
+		,const std::size_t fileline_len
+		,const char *func
+		,const std::size_t func_len
+		,const std::string &data
+		,const level lvl
+	);
 
 	static void flush();
 
@@ -242,7 +309,9 @@ private:
 				if ( log->get_level() >= ::yal::level::error ) { \
 					log->write( \
 						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 						,__PRETTY_FUNCTION__ \
+						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
 						,::yal::level::error \
 					); \
@@ -255,10 +324,12 @@ private:
 #		define YAL_GLOBAL_LOG_ERROR(...) \
 			do { \
 				::yal::logger::write( \
-					__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-				  ,__PRETTY_FUNCTION__ \
-				  ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
-				  ,::yal::level::error \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					,__PRETTY_FUNCTION__ \
+					,sizeof(__PRETTY_FUNCTION__)-1 \
+					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::error \
 				); \
 			} while(0)
 #		define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) \
@@ -282,7 +353,9 @@ private:
 				if ( log->get_level() >= ::yal::level::warning ) { \
 					log->write( \
 						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 						,__PRETTY_FUNCTION__ \
+						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
 						,::yal::level::warning \
 					); \
@@ -295,10 +368,12 @@ private:
 #		define YAL_GLOBAL_LOG_WARNING(...) \
 			do { \
 				::yal::logger::write( \
-					__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-				  ,__PRETTY_FUNCTION__ \
-				  ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
-				  ,::yal::level::warning \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					,__PRETTY_FUNCTION__ \
+					,sizeof(__PRETTY_FUNCTION__)-1 \
+					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::warning \
 				); \
 			} while(0)
 #		define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) \
@@ -322,7 +397,9 @@ private:
 				if ( log->get_level() >= ::yal::level::debug ) { \
 					log->write( \
 						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 						,__PRETTY_FUNCTION__ \
+						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
 						,::yal::level::debug \
 					); \
@@ -335,10 +412,12 @@ private:
 #		define YAL_GLOBAL_LOG_DEBUG(...) \
 			do { \
 				::yal::logger::write( \
-					__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-				  ,__PRETTY_FUNCTION__ \
-				  ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
-				  ,::yal::level::debug \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					,__PRETTY_FUNCTION__ \
+					,sizeof(__PRETTY_FUNCTION__)-1 \
+					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::debug \
 				); \
 			} while(0)
 #		define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) \
@@ -362,7 +441,9 @@ private:
 				if ( log->get_level() == ::yal::level::info ) { \
 					log->write( \
 						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 						,__PRETTY_FUNCTION__ \
+						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
 						,::yal::level::info \
 					); \
@@ -375,10 +456,12 @@ private:
 #		define YAL_GLOBAL_LOG_INFO(...) \
 			do { \
 				::yal::logger::write( \
-					__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-				  ,__PRETTY_FUNCTION__ \
-				  ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
-				  ,::yal::level::info \
+					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					,__PRETTY_FUNCTION__ \
+					,sizeof(__PRETTY_FUNCTION__)-1 \
+					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+					,::yal::level::info \
 				); \
 			} while(0)
 #		define YAL_GLOBAL_LOG_INFO_IF(cond, ...) \
@@ -503,13 +586,17 @@ private:
 		do {} while(0)
 #endif // YAL_DISABLE_TESTS
 
+/***************************************************************************/
+
 #ifndef YAL_DISABLE_ASSERT
 #	define YAL_ASSERT_IMPL_TO_LOG(expr, log) \
 		do { \
 			if ( !(expr) ) { \
 				log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 					,__PRETTY_FUNCTION__ \
+					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,"assert \"" #expr "\" is false" \
 					,::yal::level::error \
 				); \
@@ -520,11 +607,11 @@ private:
 #	define YAL_ASSERT_IMPL_TO_CERR(expr) \
 		do { \
 			if ( !(expr) ) { \
-				char datebuf[32] = "\0"; \
+				char dtbuf[::yal::usec_res_len+1] = "\0"; \
 				fprintf( \
 					 stderr \
 					,"[%s][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%s]: expression \"" #expr "\" is false\n" \
-					,::yal::detail::session::usec_date_str(datebuf, sizeof(datebuf)) \
+					,::yal::usec_datetime_str(dtbuf, sizeof(dtbuf)) \
 					,__PRETTY_FUNCTION__ \
 				); \
 				std::fflush(stderr); \
@@ -541,6 +628,8 @@ private:
 #	define YAL_ASSERT(...) \
 		do {} while(0)
 #endif // YAL_DISABLE_ASSERT
+
+/***************************************************************************/
 
 #ifndef YAL_DISABLE_TIMEPOINT
 #include <chrono>
@@ -561,10 +650,12 @@ struct timepoint {
 		const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do { \
-			const auto d  = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
+			const auto d = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
 			log->write( \
 				 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
+				,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 				,__PRETTY_FUNCTION__ \
+				,sizeof(__PRETTY_FUNCTION__)-1 \
 				,YAL_FORMAT_MESSAGE_AS_STRING( \
 					 "execution time of scope(\"%s\") in lines %d-%d is %ds-%dms-%dus-%dns" \
 					,_yal_timepoint_##name.descr \

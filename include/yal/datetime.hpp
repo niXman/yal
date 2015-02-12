@@ -29,40 +29,27 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <yal/yal.hpp>
+#ifndef _yal__datetime_hpp
+#define _yal__datetime_hpp
 
-#include <boost/filesystem.hpp>
+#include <yal/options.hpp>
 
-#include <vector>
-#include <string>
+#include <cstdint>
 
-/***************************************************************************/
+namespace yal {
 
-std::vector<std::string>
-get_list_of_files() {
-	std::vector<std::string> res;
+// constants
+enum {
+	 sec_res_len  = 19
+	,usec_res_len = 26
+	,nsec_res_len = 29
+};
 
-	boost::filesystem::directory_iterator cur("./"), end;
+const char* datetime_str(char *buf, const std::size_t buf_size, std::uint32_t opts);
+const char* sec_datetime_str(char *buf, const std::size_t buf_size);
+const char* usec_datetime_str(char *buf, const std::size_t buf_size);
+const char* nsec_datetime_str(char *buf, const std::size_t buf_size);
 
-	for ( ;cur != end; ++cur ) {
-		res.push_back(cur->path().string());
-	}
+} // ns yal
 
-	return res;
-}
-
-/***************************************************************************/
-
-int main() {
-	const std::vector<std::string> src = get_list_of_files();
-
-	YAL_SESSION_CREATE(session1, "disable");
-	YAL_SESSION_TO_TERM(session1, true, "terminal");
-
-	const std::vector<std::string> dst = get_list_of_files();
-
-	const bool ok = (src == dst);
-	YAL_ASSERT(ok);
-}
-
-/***************************************************************************/
+#endif // _yal__datetime_hpp

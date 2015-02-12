@@ -12,11 +12,13 @@ INCLUDEPATH += \
 
 LIBS += \
 	-lboost_system \
-	-lboost_filesystem
+	-lboost_filesystem \
+	-lz
 
 SOURCES += \
 	main.cpp \
-	../../src/yal/yal.cpp
+	../../src/yal/yal.cpp \
+	../../src/yal/datetime.cpp
 
 HEADERS += \
 	../../include/yal/yal.hpp

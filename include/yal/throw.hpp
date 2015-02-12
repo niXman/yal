@@ -29,40 +29,43 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <yal/yal.hpp>
+#ifndef _yal__throw_hpp
+#define _yal__throw_hpp
 
-#include <boost/filesystem.hpp>
-
-#include <vector>
 #include <string>
+#include <cerrno>
+
+#include <string.h>
 
 /***************************************************************************/
 
-std::vector<std::string>
-get_list_of_files() {
-	std::vector<std::string> res;
+namespace yal {
 
-	boost::filesystem::directory_iterator cur("./"), end;
+struct exception: std::exception {
+	exception(std::string msg) noexcept
+		:std::exception()
+		,msg(std::move(msg))
+	{}
+	virtual ~exception() {}
 
-	for ( ;cur != end; ++cur ) {
-		res.push_back(cur->path().string());
+	const char* what() const noexcept { return msg.c_str(); }
+
+	const std::string msg;
+};
+
+} // ns yal
+
+#define _STRINGIZE(x) #x
+#define STRINGIZE(x) _STRINGIZE(x)
+
+#define YAL_THROW_IF(expr, msg) \
+	if ( (expr) ) { \
+		const int __ec = errno; \
+		char __buf[1024] = "\0"; \
+		const char *__bufp = strerror_r(__ec, __buf, sizeof(__buf)); \
+		throw ::yal::exception(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + __bufp + ")"); \
 	}
 
-	return res;
-}
-
 /***************************************************************************/
 
-int main() {
-	const std::vector<std::string> src = get_list_of_files();
-
-	YAL_SESSION_CREATE(session1, "disable");
-	YAL_SESSION_TO_TERM(session1, true, "terminal");
-
-	const std::vector<std::string> dst = get_list_of_files();
-
-	const bool ok = (src == dst);
-	YAL_ASSERT(ok);
-}
-
-/***************************************************************************/
+#endif // _yal__throw_hpp

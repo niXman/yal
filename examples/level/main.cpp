@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013,2014 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -59,10 +59,10 @@ int main() {
 		}
 		YAL_SESSION_SET_LEVEL(log, lvl);
 
-		YAL_LOG_INFO	(log, "INFO    LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
-		YAL_LOG_DEBUG	(log, "DEBUG   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
-		YAL_LOG_WARNING(log, "WARNING LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
-		YAL_LOG_ERROR	(log, "ERROR   LEVEL, idx = %1%, lvl = %2%", idx, log->level_str(lvl));
+		YAL_LOG_INFO	(log, "INFO    LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
+		YAL_LOG_DEBUG	(log, "DEBUG   LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
+		YAL_LOG_WARNING(log, "WARNING LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
+		YAL_LOG_ERROR	(log, "ERROR   LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
 	}
 }
 

@@ -1,4 +1,5 @@
-// Copyright (c) 2013,2014 niXman (i dotty nixman doggy gmail dotty com)
+
+// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -30,65 +31,223 @@
 
 #include <yal/yal.hpp>
 
-#include <boost/filesystem.hpp>
-
 #include <cstdio>
 #include <cctype>
-#include <cerrno>
 
 #include <unordered_map>
 #include <algorithm>
 #include <mutex>
 
-#define _STRINGIZE(x) \
-	#x
+#include <boost/filesystem.hpp>
 
-#define STRINGIZE(x) \
-	_STRINGIZE(x)
+#include <fcntl.h>
 
-#define YAL_THROW(msg) \
-	throw std::runtime_error(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): ") + msg)
+/***************************************************************************/
+
+#ifndef YAL_SUPPORT_COMPRESSION
+#	define YAL_SUPPORT_COMPRESSION (1)
+#endif // YAL_SUPPORT_COMPRESSION
+
+#if YAL_SUPPORT_COMPRESSION
+#	include <zlib.h>
+#endif // YAL_SUPPORT_COMPRESSION
+
+/***************************************************************************/
+
+#ifndef YAL_THREAD_SAFE
+#	define YAL_THREAD_SAFE (0)
+#endif // YAL_THREAD_SAFE
+
+#if YAL_THREAD_SAFE
+using mutex_t = std::mutex;
+#else
+struct mutex_t {
+	void lock() {}
+	bool try_lock() noexcept { return true; }
+	void unlock() {}
+};
+#endif // YAL_THREAD_SAFE
+
+using guard_t = std::lock_guard<mutex_t>;
+
+/***************************************************************************/
 
 namespace yal {
 
 /***************************************************************************/
 
+const char* level_str(const level lvl) {
+	static const char info_str[9]     = "info    ";
+	static const char debug_str[9]    = "debug   ";
+	static const char warning_str[9]  = "warning ";
+	static const char error_str[9]    = "error   ";
+	static const char disabled_str[9] = "disabled";
+	return (
+		lvl == yal::info ? info_str
+			: lvl == yal::debug ? debug_str
+				: lvl == yal::warning ? warning_str
+					: lvl == yal::error ? error_str
+						: disabled_str
+	);
+}
+
+/***************************************************************************/
+
 namespace detail {
 
-using mutex_t = std::mutex;
-using guard_t = std::lock_guard<mutex_t>;
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+static const char *active_ext = ".active";
+
+struct io_base {
+	virtual ~io_base() {}
+
+	virtual void create(const std::string &fname) = 0;
+	virtual void write(const void *ptr, const std::size_t size) = 0;
+	virtual void close() = 0;
+	virtual void set_buffer(const std::size_t size) = 0;
+	virtual void flush() = 0;
+	virtual void fsync() = 0;
+
+	static std::string normalize_fname(const std::string &fname) {
+		return fname.substr(0, fname.length()-std::strlen(active_ext));
+	}
+};
+
+struct file_io: io_base {
+	file_io()
+		:file(0)
+		,fname()
+	{}
+	virtual ~file_io() { close(); }
+
+	void create(const std::string &fn) {
+		close();
+		fname = fn+active_ext;
+		file = std::fopen(fname.c_str(), "wb");
+		YAL_THROW_IF(file == 0, "can't create file \"" +fname+ "\"");
+	}
+	void write(const void *ptr, const std::size_t size) {
+		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
+		YAL_THROW_IF(size != std::fwrite(ptr, 1, size, file), "write error");
+	}
+	void close() {
+		if ( file ) {
+			std::fclose(file);
+			file = 0;
+
+			boost::system::error_code ec;
+			boost::filesystem::rename(fname, normalize_fname(fname), ec);
+		}
+	}
+	void set_buffer(const std::size_t size) {
+		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
+		std::setvbuf(file, 0, (size ? _IOFBF : _IONBF), size);
+	}
+	void flush() {
+		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
+		std::fflush(file);
+	}
+	void fsync() {
+		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
+		fdatasync(fileno(file));
+	}
+
+private:
+	FILE *file;
+	std::string fname;
+};
+
+#if YAL_SUPPORT_COMPRESSION
+struct gz_file_io: io_base {
+	gz_file_io()
+		:fd(-1)
+		,gzfile(0)
+		,fname()
+	{}
+	virtual ~gz_file_io() { close(); }
+
+	void create(const std::string &fn) {
+		close();
+		fname = fn+".gz"+active_ext;
+		fd = ::open(fname.c_str(), O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
+		YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
+
+		static const char mode[4] = {'w','b','0'+YAL_COMPRESSION_LEVEL,0};
+		gzfile = gzdopen(fd, mode);
+		YAL_THROW_IF(gzfile == 0, "can't create file \"" +fname+ "\"");
+	}
+	void write(const void *ptr, const std::size_t size) {
+		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		YAL_THROW_IF(size != (std::size_t)gzwrite(gzfile, ptr, size), "write error");
+	}
+	void close() {
+		if ( gzfile ) {
+			gzclose(gzfile);
+			gzfile = 0;
+
+			::close(fd);
+			fd = -1;
+
+			boost::system::error_code ec;
+			boost::filesystem::rename(fname, normalize_fname(fname), ec);
+		}
+	}
+	void set_buffer(const std::size_t size) {
+		gzbuffer(gzfile, size);
+	}
+	void flush() {
+		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		gzflush(gzfile, Z_FINISH);
+	}
+	void fsync() {
+		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		fdatasync(fd);
+	}
+
+private:
+	int fd;
+	gzFile gzfile;
+	std::string fname;
+};
+#else
+struct gz_file_io: file_io {};
+#endif // YAL_SUPPORT_COMPRESSION
 
 /***************************************************************************/
 /***************************************************************************/
 /***************************************************************************/
 
 struct session::impl {
-	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after)
+	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts)
 		:path(path)
 		,name(name)
 		,volume_size(volume_size)
-		,shift_after(shift_after)
-		,file(0)
+		,options(opts)
+		,shift_after(YAL_MAX_VOLUME_NUMBER)
+		,file(opts & yal::compress ? (io_base*)new gz_file_io : (io_base*)new file_io)
 		,toterm(false)
 		,prefix()
 		,level(yal::info)
+		,recbuf()
 		,writen_bytes(0)
 		,volume_number(0)
 	{
 		if ( name != "disable" ) {
-			volume_number = get_last_volume_number(name, path);
+			volume_number = get_last_volume_number(path, name, options & yal::remove_empty_logs);
 			create_volume();
 		} else {
 			level = yal::disable;
 		}
 	}
+	~impl() {}
 
-	~impl() {
-		if ( file )
-			std::fclose(file);
+	static std::string final_log_fname(const std::string &fname) {
+		return fname.substr(0, fname.length()-std::strlen(active_ext));
 	}
-
-	static std::size_t get_last_volume_number(const std::string &name, const std::string &path) {
+	static std::size_t get_last_volume_number(const std::string &path, const std::string &name, bool remove_empty) {
 		std::size_t volume_number = 0;
 		std::string logpath, logfname;
 
@@ -105,25 +264,28 @@ struct session::impl {
 			logfname = logfname.substr(0, pos);
 		}
 
+		boost::system::error_code ec;
+		std::vector<std::string> empty_logs;
+		std::vector<std::string> for_rename;
 		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
-			const auto filepath = fs_beg->path().string();
 			const auto filename = fs_beg->path().filename().string();
-			if ( filename == "." || filename == ".." || boost::filesystem::is_directory(filepath) )
+			if ( boost::filesystem::is_directory(*fs_beg) )
 				continue;
 
 			if ( filename.find(logfname+"-") == std::string::npos )
 				continue;
 
-			boost::system::error_code ec;
-			const auto filesize = boost::filesystem::file_size(filepath, ec);
-			if ( ec ) YAL_THROW("can't get filesize(" +filepath+ "): " + ec.message());
-			if ( filesize == 0 ) {
-				boost::system::error_code ec;
-				boost::filesystem::remove(filepath, ec);
-				if ( ec ) YAL_THROW("can't remove empty volume(" +filepath+ "): " + ec.message());
+			if ( filename.find(active_ext) != std::string::npos )
+				for_rename.push_back(filename);
 
-				continue;
+			if ( remove_empty ) {
+				const auto filesize = boost::filesystem::file_size(*fs_beg, ec);
+				YAL_THROW_IF(ec, "can't get filesize(" +fs_beg->path().string()+ "): " + ec.message());
+				if ( filesize == 0 ) {
+					empty_logs.push_back(fs_beg->path().string());
+					continue;
+				}
 			}
 
 			auto beg = std::find(filename.begin(), filename.end(), '-');
@@ -144,36 +306,16 @@ struct session::impl {
 				volume_number = num;
 		}
 
-		return volume_number;
-	}
-
-	enum resolution { sec_res, usec_res };
-
-	static const char* datetime(const resolution res, char *buf, const std::size_t size) {
-		if ( size < 32 )
-			YAL_THROW("buffer's size for date-time format should be greater or equal to 32 bytes");
-
-		struct timespec ts;
-		clock_gettime(CLOCK_REALTIME, &ts);
-		const std::tm *tm = std::localtime(&ts.tv_sec);
-		if ( res == usec_res ) {
-			std::snprintf(
-				 buf, size
-				,"%02d.%02d.%04d-%02d.%02d.%02d-%6ld"
-				,tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900
-				,tm->tm_hour, tm->tm_min, tm->tm_sec
-				,ts.tv_nsec/1000
-			);
-		} else {
-			std::snprintf(
-				 buf, size
-				,"%02d.%02d.%04d-%02d.%02d.%02d"
-				,tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900
-				,tm->tm_hour, tm->tm_min, tm->tm_sec
-			);
+		for ( const auto &it: empty_logs ) {
+			boost::filesystem::remove(it, ec);
+			YAL_THROW_IF(ec, "can't remove empty volume(" +it+ "): " + ec.message());
 		}
 
-		return buf;
+		for ( const auto &it: for_rename ) {
+			boost::filesystem::rename(it, final_log_fname(it), ec);
+		}
+
+		return volume_number;
 	}
 
 	void create_volume() {
@@ -188,138 +330,160 @@ struct session::impl {
 		const int digits = std::log10(shift_after)+1;
 		std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
+		sec_datetime_str(datebuf, sizeof(datebuf));
+		datebuf[sec_res_len] = 0;
+		std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datebuf);
+
 		const char *pos = std::strchr(name.c_str(), '.');
-		if ( !pos ) {
-			std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datetime(sec_res, datebuf, sizeof(datebuf)));
-		} else {
-			std::strcat(fmt, "%s");
-			std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datetime(sec_res, datebuf, sizeof(datebuf)), pos);
-		}
+		if ( pos )
+			std::strcat(pathbuf, pos);
 
-		file = std::fopen(pathbuf, "wb");
-		if ( !file ) {
-			int error = errno;
-			YAL_THROW("cannot create logfile \"" + std::string(pathbuf) + "\" with errno="+std::to_string(error));
-		}
+		file->create(pathbuf);
+
+		if ( options & unbuffered )
+			set_buffer(0);
 	}
 
-	void set_buffer(std::size_t size) {
-		if ( file )
-			std::setvbuf(file, 0, (size == 0 ? _IONBF : _IOFBF), size);
-	}
+	void set_buffer(std::size_t size) { file->set_buffer(size); }
+	void flush() { file->flush(); }
+	void to_term(bool ok, const std::string &pref) { toterm = ok; prefix = pref; }
 
-	void to_term(bool ok, const std::string &pref) {
-		toterm = ok;
-		prefix = pref;
-	}
+	void write(
+			const char *fileline
+		  ,const std::size_t fileline_len
+		  ,const char *func
+		  ,const std::size_t func_len
+		  ,const std::string &data
+		  ,const level lvl)
+	{
 
-	void write(const char *fileline, const char *func, const std::string &data, const yal::level lvl) {
-		const char *levelstr = (
-			lvl == yal::info ? "info   "
-				: lvl == yal::debug ? "debug  "
-					: lvl == yal::warning ? "warning"
-						: lvl == yal::error ? "error  "
-							: "disabled"
-		);
+		const std::size_t dtlen = (
+			(options & usec_res)
+				? usec_res_len
+				: (options & nsec_res)
+					? nsec_res_len
+					: sec_res_len
+		); // date-time string length
 
-		static const char *fmt0 = "[%s][%s][%s][%s]: %s\n";
-		static const char *fmt1 = "<%s>[%s][%s][%s][%s]: %s\n";
-		char datebuf[64] = "\0";
-		const char *datestr = datetime(usec_res, datebuf, sizeof(datebuf));
+		const std::size_t reclen =
+			 1 // '['
+			+dtlen
+			+2 // ']['
+			+level_str_len // log-level string length
+			+2 // ']['
+			+fileline_len
+			+2 // ']['
+			+func_len
+			+3 // ']: '
+			+data.length()
+			+1 // '\n'
+		;
+
+		if ( reclen > recbuf.size() )
+			recbuf.resize(reclen);
+
+		char dtbuf[32] = "\0";
+		std::memset(dtbuf, ' ', sizeof(dtbuf));
+		datetime_str(dtbuf, sizeof(dtbuf), options);
+		const char *lvlstr = level_str(lvl);
+
+		/*********************************************/
+		char *p = (char*)recbuf.c_str();
+		*p++ = '[';
+		std::memcpy(p, dtbuf, dtlen);
+		p += dtlen;
+		*p++ = ']';
+		*p++ = '[';
+		std::memcpy(p, lvlstr, level_str_len);
+		p += level_str_len;
+		*p++ = ']';
+		*p++ = '[';
+		std::memcpy(p, fileline, fileline_len);
+		p += fileline_len;
+		*p++ = ']';
+		*p++ = '[';
+		std::memcpy(p, func, func_len);
+		p += func_len;
+		*p++ = ']';
+		*p++ = ':';
+		*p++ = ' ';
+		std::memcpy(p, data.c_str(), data.length());
+		p += data.length();
+		*p++ = '\n';
+		*p = 0;
+		/*********************************************/
 
 		if ( toterm ) {
-			auto termlog = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
-			if ( prefix.empty() ) {
-				std::fprintf(termlog, fmt0, datestr, levelstr, fileline, func, data.c_str());
+			FILE *term = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
+			if ( !prefix.empty() ) {
+				std::fprintf(term, "<%s>%s", prefix.c_str(), recbuf.c_str());
 			} else {
-				std::fprintf(termlog, fmt1, prefix.c_str(), datestr, levelstr, fileline, func, data.c_str());
+				std::fprintf(term, "%s", recbuf.c_str());
 			}
-			std::fflush(termlog);
+			std::fflush(term);
 		}
 
-		const int writen = std::fprintf(file, fmt0, datestr, levelstr, fileline, func, data.c_str());
+		file->write(recbuf.c_str(), reclen);
 
-		if ( writen < 0 ) {
-			int error = errno;
-			YAL_THROW("cannot write to logfile with errno="+std::to_string(error));
-		}
+		if ( options & flush_each_record )
+			file->flush();
+		if ( options & fsync_each_record )
+			file->fsync();
 
-		writen_bytes += writen;
+		writen_bytes += reclen;
 		if ( writen_bytes >= volume_size ) {
-			writen_bytes = 0;
+//			std::cout << "writen_bytes=" << writen_bytes << std::endl;
 
-			if ( std::fclose(file) != 0 ) {
-				int error = errno;
-				YAL_THROW("cannot close logfile with errno="+std::to_string(error));
-			}
+			writen_bytes = 0;
 
 			volume_number += 1;
 			create_volume();
 		}
 	}
 
-	void flush() {
-		if ( file )
-			std::fflush(file);
-	}
-
 	const std::string path;
 	const std::string name;
 	const std::size_t volume_size;
-	std::size_t			shift_after;
-	FILE					*file;
-	bool					toterm;
-	std::string			prefix;
-	yal::level			level;
-	std::size_t			writen_bytes;
-	std::size_t			volume_number;
+	const std::uint32_t options;
+	std::size_t       shift_after;
+	std::unique_ptr<io_base> file;
+	bool              toterm;
+	std::string       prefix;
+	yal::level        level;
+	std::string       recbuf;
+	std::size_t       writen_bytes;
+	std::size_t       volume_number;
 };
 
 /***************************************************************************/
 
-session::session(const std::string &path, const std::string &name, std::size_t volume_size, std::size_t shift_after)
-	:pimpl(new impl(path, name, volume_size, shift_after))
+session::session(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts)
+	:pimpl(new impl(path, name, volume_size, opts))
 {}
 
 session::~session()
 { delete pimpl; }
 
-const std::string &session::name() const { return pimpl->name; }
-
-const char* session::sec_date_str(char *buf, const std::size_t size) { return impl::datetime(impl::sec_res, buf, size); }
-const char* session::usec_date_str(char *buf, const std::size_t size) { return impl::datetime(impl::usec_res, buf, size); }
-
-const char* session::level_str(level lvl) {
-	return (
-		lvl == yal::info ? "info"
-			: lvl == yal::debug ? "debug"
-				: lvl == yal::warning ? "warning"
-					: lvl == yal::error ? "error"
-						: "disabled"
-	);
-}
-
 /***************************************************************************/
 
-void session::set_buffer(const std::size_t size) {
-	pimpl->set_buffer(size);
-}
-
-void session::to_term(const bool ok, const std::string &pref) {
-	pimpl->to_term(ok, pref);
-}
-
+const std::string& session::name() const { return pimpl->name; }
+void session::set_buffer(const std::size_t size) { pimpl->set_buffer(size); }
+void session::to_term(const bool ok, const std::string &pref) { pimpl->to_term(ok, pref); }
 void session::set_level(const level lvl) { pimpl->level = lvl; }
 level session::get_level() const { return pimpl->level; }
 
-void session::write(const char *fileline, const char *func, const std::string &data, const level lvl) {
-	if ( data.empty() ) return;
-	pimpl->write(fileline, func, data, lvl);
+void session::write(
+		const char *fileline
+	  ,const std::size_t fileline_len
+	  ,const char *func
+	  ,const std::size_t func_len
+	  ,const std::string &data
+	  ,const level lvl)
+{
+	pimpl->write(fileline, fileline_len, func, func_len, data, lvl);
 }
 
-void session::flush() {
-	pimpl->flush();
-}
+void session::flush() { pimpl->flush(); }
 
 /***************************************************************************/
 /***************************************************************************/
@@ -363,7 +527,12 @@ struct session_manager::impl {
 
 session_manager::session_manager()
 	:pimpl(new impl)
-{}
+{
+	// for setting the 'timezone' extern var
+	std::time_t t = time(0);
+	std::tm *lt = localtime(&t);
+	(void)lt;
+}
 
 session_manager::~session_manager() {
 	delete pimpl;
@@ -371,7 +540,7 @@ session_manager::~session_manager() {
 
 /***************************************************************************/
 
-const std::string &session_manager::root_path() const {
+const std::string& session_manager::root_path() const {
 	guard_t lock(pimpl->mutex);
 
 	return pimpl->root_path;
@@ -383,26 +552,21 @@ void session_manager::root_path(const std::string &path) {
 	if ( !boost::filesystem::exists(path) ) {
 		boost::system::error_code ec;
 		boost::filesystem::create_directories(path, ec);
-		if ( ec )
-			YAL_THROW("can't create directory(" +path+ "): " + ec.message());
+		YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
 	}
 
 	pimpl->root_path = path;
 }
 
 std::shared_ptr<session>
-session_manager::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
+session_manager::create(const std::string &name, std::size_t volume_size, std::uint32_t opts) {
 	guard_t lock(pimpl->mutex);
 
-	if ( !name.empty() && name[0] == '/' )
-		YAL_THROW("session name can't be a full path");
-	if ( !shift_after )
-		YAL_THROW("shift_after can be 1 or greater");
+	YAL_THROW_IF(!name.empty() && name[0] == '/', "session name can't be a full path");
 
 	pimpl->iterate(
 		[&name](yal::session s) {
-			if ( s->name() == name )
-				YAL_THROW("session \""+name+"\" already exists");
+			YAL_THROW_IF(s->name() == name, "session \""+name+"\" already exists");
 		}
 	);
 
@@ -413,12 +577,16 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 		if ( !boost::filesystem::exists(path) ) {
 			boost::system::error_code ec;
 			boost::filesystem::create_directories(path, ec);
-			if ( ec )
-				YAL_THROW("can't create directory(" +path+ "): " + ec.message());
+			YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
 		}
 	}
 
-	yal::session session = std::make_shared<detail::session>(pimpl->root_path, name, volume_size, shift_after);
+	yal::session session = std::make_shared<detail::session>(
+		 pimpl->root_path
+		,name
+		,volume_size
+		,opts
+	);
 	pimpl->sessions.insert({name, session});
 
 	return session;
@@ -426,11 +594,20 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::s
 
 /***************************************************************************/
 
-void session_manager::write(const char *fileline, const char *func, const std::string &data, level lvl) {
+void session_manager::write(
+	 const char *fileline
+	,const std::size_t fileline_len
+	,const char *func
+	,const std::size_t func_len
+	,const std::string &data
+	,const level lvl)
+{
 	guard_t lock(pimpl->mutex);
 
 	pimpl->iterate(
-		[fileline, func, &data, lvl](yal::session s) { s->write(fileline, func, data, lvl); }
+		[fileline, fileline_len, func, func_len, &data, lvl](yal::session s) {
+			s->write(fileline, fileline_len, func, func_len, data, lvl);
+		}
 	);
 }
 
@@ -471,16 +648,23 @@ detail::session_manager* logger::instance() {
 
 const std::string &logger::root_path() { return instance()->root_path(); }
 
-session logger::create(const std::string &name, std::size_t volume_size, std::size_t shift_after) {
-	return instance()->create(name, volume_size, shift_after);
+session logger::create(const std::string &name, std::size_t volume_size, std::uint32_t opts) {
+	return instance()->create(name, volume_size, opts);
 }
 
 yal::session logger::get(const std::string &name) {
 	return instance()->get(name);
 }
 
-void logger::write(const char *fileline, const char *func, const std::string &data, level lvl) {
-	instance()->write(fileline, func, data, lvl);
+void logger::write(
+	 const char *fileline
+	,const std::size_t fileline_len
+	,const char *func
+	,const std::size_t func_len
+	,const std::string &data
+	,const level lvl)
+{
+	instance()->write(fileline, fileline_len, func, func_len, data, lvl);
 }
 
 void logger::flush() { instance()->flush(); }
