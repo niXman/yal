@@ -179,7 +179,7 @@ struct logger: private boost::noncopyable {
 	static yal::session create(
 		 const std::string &name
 		,std::size_t volume_size = UINT_MAX
-		,std::uint32_t opts = 0
+		,std::uint32_t opts = options::sec_res
 	);
 
 	static yal::session get(const std::string &name);
@@ -276,12 +276,19 @@ private:
 #	define YAL_SESSION_DECLARE_VAR(var) \
 		::yal::session var
 
+#	define YAL_SESSION_INIT_VAR(l, r) \
+		:l(r)
+#	define YAL_SESSION_INIT_VAR2(l, r) \
+		,l(r)
+
 #	define YAL_SESSION_CREATE(var, ...) \
 		YAL_SESSION_DECLARE_VAR(var) = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE2(var, ...) \
 		var = ::yal::logger::create(__VA_ARGS__)
 #	define YAL_SESSION_CREATE3(var, ...) \
-		var(::yal::logger::create(__VA_ARGS__))
+		:var(::yal::logger::create(__VA_ARGS__))
+#	define YAL_SESSION_CREATE4(var, ...) \
+		,var(::yal::logger::create(__VA_ARGS__))
 
 #	define YAL_SESSION_GET(var, name) \
 		::yal::session var = ::yal::logger::get(name)
@@ -488,9 +495,13 @@ private:
 
 #	define YAL_SESSION_DECLARE_VAR(var)
 
+#	define YAL_SESSION_INIT_VAR(l, r)
+#	define YAL_SESSION_INIT_VAR2(l, r)
+
 #	define YAL_SESSION_CREATE(var, ...)
 #	define YAL_SESSION_CREATE2(var, ...)
 #	define YAL_SESSION_CREATE3(var, ...)
+#	define YAL_SESSION_CREATE4(var, ...)
 
 #	define YAL_SESSION_GET(var, name)
 #	define YAL_SESSION_GET2(name)
