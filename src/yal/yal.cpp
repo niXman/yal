@@ -269,7 +269,7 @@ struct session::impl {
 		std::vector<std::string> for_rename;
 		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
-			const auto filename = fs_beg->path().filename().string();
+			const auto filename = fs_beg->path().string();
 			if ( boost::filesystem::is_directory(*fs_beg) )
 				continue;
 

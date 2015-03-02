@@ -38,9 +38,9 @@
 
 int main() {
 	try {
-		YAL_SESSION_CREATE(test1, "test1", 1024*1024, yal::usec_res|yal::flush_each_record);
-		YAL_SESSION_CREATE(test2, "test2", 1024*1024, yal::compress|yal::nsec_res);
-		YAL_SESSION_CREATE(test3, "test3", 1024*1024, yal::usec_res|yal::unbuffered);
+		YAL_SESSION_CREATE(test1, "test1/test1", 1024*1024, yal::sec_res|yal::flush_each_record);
+		YAL_SESSION_CREATE(test2, "test2", 1024*1024, yal::compress|yal::usec_res);
+		YAL_SESSION_CREATE(test3, "test3/test3", 1024*1024, yal::nsec_res|yal::unbuffered);
 		YAL_SESSION_CREATE(test4, "test4", 1024*1024, yal::compress|yal::nsec_res);
 	//	YAL_SESSION_TO_TERM(test1, true, "term1")
 		for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*100ul*10ul; idx+=2, idx2+=3 ) {
