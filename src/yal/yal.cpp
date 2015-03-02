@@ -269,24 +269,26 @@ struct session::impl {
 		std::vector<std::string> for_rename;
 		boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
 		for ( ; fs_beg != fs_end; ++fs_beg ) {
-			const auto filename = fs_beg->path().string();
+			const auto path     = fs_beg->path().string();
+			const auto filename = fs_beg->path().filename().string();
+
 			if ( boost::filesystem::is_directory(*fs_beg) )
 				continue;
 
-			if ( filename.find(logfname+"-") == std::string::npos )
+			if ( path.find(logfname+"-") == std::string::npos )
 				continue;
-
-			if ( filename.find(active_ext) != std::string::npos )
-				for_rename.push_back(filename);
 
 			if ( remove_empty ) {
 				const auto filesize = boost::filesystem::file_size(*fs_beg, ec);
-				YAL_THROW_IF(ec, "can't get filesize(" +fs_beg->path().string()+ "): " + ec.message());
+				YAL_THROW_IF(ec, "can't get filesize(" +path+ "): " + ec.message());
 				if ( filesize == 0 ) {
-					empty_logs.push_back(fs_beg->path().string());
+					empty_logs.push_back(path);
 					continue;
 				}
 			}
+
+			if ( filename.find(active_ext) != std::string::npos )
+				for_rename.push_back(filename);
 
 			auto beg = std::find(filename.begin(), filename.end(), '-');
 			if ( beg == filename.end() || beg+1 == filename.end() )
@@ -306,13 +308,16 @@ struct session::impl {
 				volume_number = num;
 		}
 
+		ec.clear();
 		for ( const auto &it: empty_logs ) {
 			boost::filesystem::remove(it, ec);
 			YAL_THROW_IF(ec, "can't remove empty volume(" +it+ "): " + ec.message());
 		}
 
+		ec.clear();
 		for ( const auto &it: for_rename ) {
 			boost::filesystem::rename(it, final_log_fname(it), ec);
+			YAL_THROW_IF(ec, "can't rename unfinished volume(" +it+ "): " + ec.message());
 		}
 
 		return volume_number;
