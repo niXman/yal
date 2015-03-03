@@ -325,7 +325,7 @@ private:
 					); \
 				} \
 			} while(0)
-#		define YAL_LOG_ERROR_IF(cond, log, ...) \
+#		define YAL_LOG_ERROR_IF(log, cond, ...) \
 			do { \
 				if ( (cond) ) YAL_LOG_ERROR(log, __VA_ARGS__); \
 			} while(0)
@@ -347,7 +347,7 @@ private:
 #	else // YAL_DISABLE_LOG_ERROR
 #		define YAL_LOG_ERROR(log, ...) \
 			do {} while(0)
-#		define YAL_LOG_ERROR_IF(cond, log, ...) \
+#		define YAL_LOG_ERROR_IF(log, cond, ...) \
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_ERROR(...) \
 			do {} while(0)
@@ -369,7 +369,7 @@ private:
 					); \
 				} \
 			} while(0)
-#		define YAL_LOG_WARNING_IF(cond, log, ...) \
+#		define YAL_LOG_WARNING_IF(log, cond, ...) \
 			do { \
 				if ( (cond) ) YAL_LOG_WARNING(log, __VA_ARGS__); \
 			} while(0)
@@ -391,7 +391,7 @@ private:
 #	else // YAL_DISABLE_LOG_WARNING
 #		define YAL_LOG_WARNING(log, ...) \
 			do {} while(0)
-#		define YAL_LOG_WARNING_IF(cond, log, ...) \
+#		define YAL_LOG_WARNING_IF(log, cond, ...) \
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_WARNING(...) \
 			do {} while(0)
@@ -413,7 +413,7 @@ private:
 					); \
 				} \
 			} while(0)
-#		define YAL_LOG_DEBUG_IF(cond, log, ...) \
+#		define YAL_LOG_DEBUG_IF(log, cond, ...) \
 			do { \
 				if ( (cond) ) YAL_LOG_DEBUG(log, __VA_ARGS__); \
 			} while(0)
@@ -435,7 +435,7 @@ private:
 #	else // YAL_DISABLE_LOG_DEBUG
 #		define YAL_LOG_DEBUG(log, ...) \
 			do {} while(0)
-#		define YAL_LOG_DEBUG_IF(cond, log, ...) \
+#		define YAL_LOG_DEBUG_IF(log, cond, ...) \
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_DEBUG(...) \
 			do {} while(0)
@@ -457,7 +457,7 @@ private:
 					); \
 				} \
 			} while(0)
-#		define YAL_LOG_INFO_IF(cond, log, ...) \
+#		define YAL_LOG_INFO_IF(log, cond, ...) \
 			do { \
 				if ( (cond) ) YAL_LOG_INFO(log, __VA_ARGS__); \
 			} while(0)
@@ -479,7 +479,7 @@ private:
 #	else // YAL_DISABLE_LOG_INFO
 #		define YAL_LOG_INFO(log, ...) \
 			do {} while(0)
-#		define YAL_LOG_INFO_IF(cond, log, ...) \
+#		define YAL_LOG_INFO_IF(log, cond, ...) \
 			do {} while(0)
 #		define YAL_GLOBAL_LOG_INFO(...) \
 			do {} while(0)
@@ -518,7 +518,7 @@ private:
 
 #	define YAL_LOG_ERROR(log, ...) \
 		do {} while(0)
-#	define YAL_LOG_ERROR_IF(cond, log, ...) \
+#	define YAL_LOG_ERROR_IF(log, cond, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_ERROR(...) \
 		do {} while(0)
@@ -526,7 +526,7 @@ private:
 		do {} while(0)
 #	define YAL_LOG_WARNING(log, ...) \
 		do {} while(0)
-#	define YAL_LOG_WARNING_IF(cond, log, ...) \
+#	define YAL_LOG_WARNING_IF(log, cond, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_WARNING(...) \
 		do {} while(0)
@@ -534,7 +534,7 @@ private:
 		do {} while(0)
 #	define YAL_LOG_DEBUG(log, ...) \
 		do {} while(0)
-#	define YAL_LOG_DEBUG_IF(cond, log, ...) \
+#	define YAL_LOG_DEBUG_IF(log, cond, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_DEBUG(...) \
 		do {} while(0)
@@ -542,7 +542,7 @@ private:
 		do {} while(0)
 #	define YAL_LOG_INFO(log, ...) \
 		do {} while(0)
-#	define YAL_LOG_INFO_IF(cond, log, ...) \
+#	define YAL_LOG_INFO_IF(log, cond, ...) \
 		do {} while(0)
 #	define YAL_GLOBAL_LOG_INFO(...) \
 		do {} while(0)
@@ -601,43 +601,35 @@ private:
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_ASSERT
-#	define YAL_ASSERT_IMPL_TO_LOG(expr, log) \
+#	define YAL_ASSERT_LOG(log, ...) \
 		do { \
-			if ( !(expr) ) { \
+			if ( !(__VA_ARGS__) ) { \
 				log->write( \
 					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
 					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
-					,"assert \"" #expr "\" is false" \
+					,"assert \"" #__VA_ARGS__ "\" is false" \
 					,::yal::level::error \
 				); \
 				::yal::logger::flush(); \
 				std::abort(); \
 			} \
 		} while(0)
-#	define YAL_ASSERT_IMPL_TO_CERR(expr) \
+#	define YAL_ASSERT_TERM(stream, ...) \
 		do { \
-			if ( !(expr) ) { \
+			if ( !(__VA_ARGS__) ) { \
 				char dtbuf[::yal::usec_res_len+1] = "\0"; \
-				fprintf( \
-					 stderr \
-					,"[%s][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][%s]: expression \"" #expr "\" is false\n" \
-					,::yal::usec_datetime_str(dtbuf, sizeof(dtbuf)) \
-					,__PRETTY_FUNCTION__ \
-				); \
-				std::fflush(stderr); \
+				stream \
+					<< "[" << ::yal::usec_datetime_str(dtbuf, sizeof(dtbuf)) << "][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][" \
+					<< __PRETTY_FUNCTION__ << "]: expression \"" #__VA_ARGS__ "\" is false\n" << std::endl; \
 				std::abort(); \
 			} \
 		} while(0)
-#	define YAL_ASSERT(...) \
-		BOOST_PP_IF( \
-			 BOOST_PP_EQUAL(BOOST_PP_TUPLE_SIZE((__VA_ARGS__)), 1) \
-			,YAL_ASSERT_IMPL_TO_CERR \
-			,YAL_ASSERT_IMPL_TO_LOG \
-		)(__VA_ARGS__)
 #else // !YAL_DISABLE_ASSERT
-#	define YAL_ASSERT(...) \
+#	define YAL_ASSERT_LOG(log, ...) \
+		do {} while(0)
+#	define YAL_ASSERT_TERM(stream, ...) \
 		do {} while(0)
 #endif // YAL_DISABLE_ASSERT
 
@@ -681,7 +673,7 @@ struct timepoint {
 				,::yal::level::info \
 			); \
 		} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
+#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
 		if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name) \
 
 #else // !YAL_DISABLE_TIMEPOINT
@@ -689,9 +681,30 @@ struct timepoint {
 		do {} while(0)
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do {} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(expr, log, name) \
+#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
 		do {} while(0)
 #endif // YAL_DISABLE_TIMEPOINT
+
+/***************************************************************************/
+
+#ifndef YAL_DISABLE_TRY_CATCH
+
+#define YAL_TRY(flag) \
+	bool flag = false; \
+	((void)flag); \
+	static const auto _yal_try_##flag = __LINE__; \
+	try
+
+#define YAL_CATCH(log, flag, msg) \
+	catch (const std::exception &ex) { \
+		flag = true; \
+		YAL_LOG_ERROR(log, "[std::exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
+	} catch (...) { \
+		flag = true; \
+		YAL_LOG_ERROR(log, "[unknown exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
+	}
+
+#endif // YAL_DISABLE_TRY_CATCH
 
 /***************************************************************************/
 

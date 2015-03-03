@@ -48,7 +48,8 @@ int main() {
 		YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
 		YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res|yal::unbuffered);
 		YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);
-	//	YAL_SESSION_TO_TERM(test1, true, "term1")
+//		YAL_SESSION_TO_TERM(test1, true, "term1");
+
 		for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {
 			YAL_LOG_INFO	(test1, "%1% -> %2% -> %1%", idx, idx+1);
 			YAL_LOG_DEBUG	(test1, "%1% -> %2% -> %1%", idx, idx+1);
@@ -77,24 +78,25 @@ int main() {
 		}
 		YAL_FLUSH();
 
-		YAL_SESSION_GET(ts1, s1name);
-		YAL_ASSERT(ts1);
-		YAL_SESSION_GET(ts2, s2name);
-		YAL_ASSERT(ts2);
-		YAL_SESSION_GET(ts3, s3name);
-		YAL_ASSERT(ts3);
-		YAL_SESSION_GET(ts4, s4name);
-		YAL_ASSERT(ts4);
-		YAL_SESSION_GET(ts5, s5name);
-		YAL_ASSERT(!ts5);
+		YAL_SESSION_GET2(ts1, s1name);
+		YAL_ASSERT_TERM(std::cerr, ts1);
+		YAL_SESSION_GET2(ts2, s2name);
+		YAL_ASSERT_TERM(std::cerr, ts2);
+		YAL_SESSION_GET2(ts3, s3name);
+		YAL_ASSERT_TERM(std::cerr, ts3);
+		YAL_SESSION_GET2(ts4, s4name);
+		YAL_ASSERT_TERM(std::cerr, ts4);
+		YAL_SESSION_GET2(ts5, s5name);
+		YAL_ASSERT_TERM(std::cerr, !ts5);
 
-		YAL_ASSERT( YAL_SESSION_EXISTS(s1name));
-		YAL_ASSERT( YAL_SESSION_EXISTS(s2name));
-		YAL_ASSERT( YAL_SESSION_EXISTS(s3name));
-		YAL_ASSERT( YAL_SESSION_EXISTS(s4name));
-		YAL_ASSERT(!YAL_SESSION_EXISTS(s5name));
+		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s1name));
+		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s2name));
+		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s3name));
+		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s4name));
+		YAL_ASSERT_TERM(std::cerr, !YAL_SESSION_EXISTS(s5name));
 
-		YAL_SESSION_CREATE(test5, s5name, 1024*10);
+		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::flush_each_record);
+		YAL_SESSION_TO_TERM(test5, true, "test5 term");
 		YAL_TEST_LESS		(test5, 0, 1);
 		YAL_TEST_LESS		(test5, 1, 1); // test fail
 		YAL_TEST_LESSEQ	(test5, 1, 1);
@@ -115,15 +117,31 @@ int main() {
 		YAL_TEST_NULL		(test5, "cstring"); // test fail
 		YAL_TEST_NOTNULL	(test5, "cstring");
 		YAL_TEST_NOTNULL	(test5, nullptr); // test fail
+
 #if 0
-		YAL_ASSERT(true, test5);
-		YAL_ASSERT(false, test5); // test fail
-		YAL_ASSERT(true);
-		YAL_ASSERT(false); // test fail
+		YAL_ASSERT_LOG(test5, true);
+		YAL_ASSERT_LOG(test5, false); // test fail
+		YAL_ASSERT_LOG(test5, true);
+		YAL_ASSERT_LOG(test5, false); // test fail
+
+		YAL_ASSERT_TERM(std::cerr, true);
+		YAL_ASSERT_TERM(std::cerr, false); // test fail
+		YAL_ASSERT_TERM(std::cerr, true);
+		YAL_ASSERT_TERM(std::cerr, false); // test fail
 #endif
+
 		YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
 		std::this_thread::sleep_for(std::chrono::nanoseconds(3333333333));
 		YAL_PRINT_TIMEPOINT(test5, tp1);
+
+		YAL_TRY(scope_flag0) {
+			throw std::runtime_error("std::exception message");
+		} YAL_CATCH(test5, scope_flag0, "catch0 message");
+
+		YAL_TRY(scope_flag1) {
+			throw 1;
+		} YAL_CATCH(test5, scope_flag1, "catch1 message");
+
 	} catch(const std::exception &ex) {
 		std::cout << "[std::exception]: " << ex.what() << std::endl;
 		return EXIT_FAILURE;
