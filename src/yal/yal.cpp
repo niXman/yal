@@ -248,7 +248,7 @@ struct session::impl {
 		return fname.substr(0, fname.length()-std::strlen(active_ext));
 	}
 	static std::size_t get_last_volume_number(const std::string &path, const std::string &name, bool remove_empty) {
-		std::size_t volume_number = 0;
+		std::size_t volnum = 0;
 		std::string logpath, logfname;
 
 		std::size_t pos = name.find_last_of('/');
@@ -260,9 +260,9 @@ struct session::impl {
 			logfname= name;
 		}
 
-		if ( (pos=logfname.find('.')) != std::string::npos ) {
-			logfname = logfname.substr(0, pos);
-		}
+//		if ( (pos=logfname.find('.')) != std::string::npos ) {
+//			logfname = logfname.substr(0, pos);
+//		}
 
 		boost::system::error_code ec;
 		std::vector<std::string> empty_logs;
@@ -288,7 +288,7 @@ struct session::impl {
 			}
 
 			if ( filename.find(active_ext) != std::string::npos )
-				for_rename.push_back(filename);
+				for_rename.push_back(path);
 
 			auto beg = std::find(filename.begin(), filename.end(), '-');
 			if ( beg == filename.end() || beg+1 == filename.end() )
@@ -304,8 +304,8 @@ struct session::impl {
 				;
 
 			const auto num = std::stoul(std::string(beg, end)) + 1;
-			if ( num > volume_number )
-				volume_number = num;
+			if ( num > volnum )
+				volnum = num;
 		}
 
 		ec.clear();
@@ -320,7 +320,7 @@ struct session::impl {
 			YAL_THROW_IF(ec, "can't rename unfinished volume(" +it+ "): " + ec.message());
 		}
 
-		return volume_number;
+		return volnum;
 	}
 
 	void create_volume() {
