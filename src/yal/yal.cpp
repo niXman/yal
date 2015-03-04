@@ -425,7 +425,9 @@ struct session::impl {
 			} else {
 				std::fprintf(term, "%s", recbuf.c_str());
 			}
-			std::fflush(term);
+
+			if ( options & flush_each_record )
+				std::fflush(term);
 		}
 
 		file->write(recbuf.c_str(), reclen);

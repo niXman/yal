@@ -137,10 +137,12 @@ int main() {
 		YAL_TRY(scope_flag0) {
 			throw std::runtime_error("std::exception message");
 		} YAL_CATCH(test5, scope_flag0, "catch0 message");
+		YAL_ASSERT_LOG(test5, scope_flag0);
 
 		YAL_TRY(scope_flag1) {
 			throw 1;
 		} YAL_CATCH(test5, scope_flag1, "catch1 message");
+		YAL_ASSERT_LOG(test5, scope_flag1);
 
 	} catch(const std::exception &ex) {
 		std::cout << "[std::exception]: " << ex.what() << std::endl;
