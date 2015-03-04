@@ -95,7 +95,7 @@ int main() {
 		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s4name));
 		YAL_ASSERT_TERM(std::cerr, !YAL_SESSION_EXISTS(s5name));
 
-		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::flush_each_record);
+		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res|yal::flush_each_record);
 		YAL_SESSION_TO_TERM(test5, true, "test5 term");
 		YAL_TEST_LESS		(test5, 0, 1);
 		YAL_TEST_LESS		(test5, 1, 1); // test fail
