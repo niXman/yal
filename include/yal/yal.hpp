@@ -707,10 +707,10 @@ struct timepoint {
 #	define YAL_CATCH(log, flag, msg) \
 		catch (const std::exception &ex) { \
 			flag = true; \
-			YAL_LOG_ERROR(log, "[std::exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
+			YAL_LOG_ERROR(log, "[std_exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
 		} catch (...) { \
 			flag = true; \
-			YAL_LOG_ERROR(log, "[unknown exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
+			YAL_LOG_ERROR(log, "[unknown_exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
 		}
 #else
 #	define YAL_TRY(flag) \
