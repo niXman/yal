@@ -314,10 +314,11 @@ private:
 #	ifndef YAL_DISABLE_LOG_ERROR
 #		define YAL_LOG_ERROR(log, ...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				if ( log->get_level() >= ::yal::level::error ) { \
 					log->write( \
-						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+						 flbuf \
+						,sizeof(flbuf)-1 \
 						,__PRETTY_FUNCTION__ \
 						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -331,9 +332,10 @@ private:
 			} while(0)
 #		define YAL_GLOBAL_LOG_ERROR(...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				::yal::logger::write( \
-					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					 flbuf \
+					,sizeof(flbuf)-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -358,10 +360,11 @@ private:
 #	ifndef YAL_DISABLE_LOG_WARNING
 #		define YAL_LOG_WARNING(log, ...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				if ( log->get_level() >= ::yal::level::warning ) { \
 					log->write( \
-						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+						 flbuf \
+						,sizeof(flbuf)-1 \
 						,__PRETTY_FUNCTION__ \
 						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -375,9 +378,10 @@ private:
 			} while(0)
 #		define YAL_GLOBAL_LOG_WARNING(...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				::yal::logger::write( \
-					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					 flbuf \
+					,sizeof(flbuf)-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -402,10 +406,11 @@ private:
 #	ifndef YAL_DISABLE_LOG_DEBUG
 #		define YAL_LOG_DEBUG(log, ...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				if ( log->get_level() >= ::yal::level::debug ) { \
 					log->write( \
-						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+						 flbuf \
+						,sizeof(flbuf)-1 \
 						,__PRETTY_FUNCTION__ \
 						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -419,9 +424,10 @@ private:
 			} while(0)
 #		define YAL_GLOBAL_LOG_DEBUG(...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				::yal::logger::write( \
-					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					 flbuf \
+					,sizeof(flbuf)-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -446,10 +452,11 @@ private:
 #	ifndef YAL_DISABLE_LOG_INFO
 #		define YAL_LOG_INFO(log, ...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				if ( log->get_level() == ::yal::level::info ) { \
 					log->write( \
-						 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-						,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+						 flbuf \
+						,sizeof(flbuf)-1 \
 						,__PRETTY_FUNCTION__ \
 						,sizeof(__PRETTY_FUNCTION__)-1 \
 						,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -463,9 +470,10 @@ private:
 			} while(0)
 #		define YAL_GLOBAL_LOG_INFO(...) \
 			do { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				::yal::logger::write( \
-					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					 flbuf \
+					,sizeof(flbuf)-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -604,9 +612,10 @@ private:
 #	define YAL_ASSERT_LOG(log, ...) \
 		do { \
 			if ( !(__VA_ARGS__) ) { \
+				static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 				log->write( \
-					 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-					,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+					 flbuf \
+					,sizeof(flbuf)-1 \
 					,__PRETTY_FUNCTION__ \
 					,sizeof(__PRETTY_FUNCTION__)-1 \
 					,"assert \"" #__VA_ARGS__ "\" is false" \
@@ -622,7 +631,8 @@ private:
 				char dtbuf[::yal::usec_res_len+1] = "\0"; \
 				stream \
 					<< "[" << ::yal::usec_datetime_str(dtbuf, sizeof(dtbuf)) << "][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][" \
-					<< __PRETTY_FUNCTION__ << "]: expression \"" #__VA_ARGS__ "\" is false\n" << std::endl; \
+					<< __PRETTY_FUNCTION__ << "]: expression \"" #__VA_ARGS__ "\" is false" \
+				<< std::flush << std::endl; \
 				std::abort(); \
 			} \
 		} while(0)
@@ -654,10 +664,11 @@ struct timepoint {
 		const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #	define YAL_PRINT_TIMEPOINT(log, name) \
 		do { \
+			static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
 			const auto d = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
 			log->write( \
-				 __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) \
-				,sizeof(__FILE__ ":" BOOST_PP_STRINGIZE(__LINE__))-1 \
+				 flbuf \
+				,sizeof(flbuf)-1 \
 				,__PRETTY_FUNCTION__ \
 				,sizeof(__PRETTY_FUNCTION__)-1 \
 				,YAL_FORMAT_MESSAGE_AS_STRING( \
@@ -688,22 +699,26 @@ struct timepoint {
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_TRY_CATCH
-
-#define YAL_TRY(flag) \
-	bool flag = false; \
-	((void)flag); \
-	static const auto _yal_try_##flag = __LINE__; \
-	try
-
+#	define YAL_TRY(flag) \
+		bool flag = false; \
+		((void)flag); \
+		static const auto _yal_try_##flag = __LINE__; \
+		try
+#	define YAL_CATCH(log, flag, msg) \
+		catch (const std::exception &ex) { \
+			flag = true; \
+			YAL_LOG_ERROR(log, "[std::exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
+		} catch (...) { \
+			flag = true; \
+			YAL_LOG_ERROR(log, "[unknown exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
+		}
+#else
+#	define YAL_TRY(flag) \
+		try
 #define YAL_CATCH(log, flag, msg) \
-	catch (const std::exception &ex) { \
-		flag = true; \
-		YAL_LOG_ERROR(log, "[std::exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
-	} catch (...) { \
-		flag = true; \
-		YAL_LOG_ERROR(log, "[unknown exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
+	catch (...) { \
+		throw; \
 	}
-
 #endif // YAL_DISABLE_TRY_CATCH
 
 /***************************************************************************/
