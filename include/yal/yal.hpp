@@ -702,15 +702,18 @@ struct timepoint {
 #	define YAL_TRY(flag) \
 		bool flag = false; \
 		((void)flag); \
-		static const auto _yal_try_##flag = __LINE__; \
+		static const auto _yal_try_##flag##_line = __LINE__; \
 		try
+#	define YAL_TYPED_CATCH(log, extype, flag, msg) \
+		catch (const extype &ex) { \
+			flag = true; \
+			YAL_LOG_ERROR(log, "[" #extype "](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag##_line, __LINE__, ex.what(), msg); \
+		}
 #	define YAL_CATCH(log, flag, msg) \
-		catch (const std::exception &ex) { \
+		YAL_TYPED_CATCH(log, std::exception, flag, msg) \
+		catch (...) { \
 			flag = true; \
-			YAL_LOG_ERROR(log, "[std_exception](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag, __LINE__, ex.what(), msg); \
-		} catch (...) { \
-			flag = true; \
-			YAL_LOG_ERROR(log, "[unknown_exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag, __LINE__, msg); \
+			YAL_LOG_ERROR(log, "[unknown_exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag##_line, __LINE__, msg); \
 		}
 #else
 #	define YAL_TRY(flag) \
