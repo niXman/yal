@@ -292,9 +292,8 @@ private:
 
 #	define YAL_SESSION_GET(name) \
 		::yal::logger::get(name)
-
 #	define YAL_SESSION_GET2(var, name) \
-		::yal::session var = YAL_SESSION_GET(name)
+		YAL_SESSION_DECLARE_VAR(var) = YAL_SESSION_GET(name)
 
 #	define YAL_SESSION_EXISTS(name) \
 		(::yal::logger::get(name).get() != 0)
@@ -512,8 +511,8 @@ private:
 #	define YAL_SESSION_CREATE3(var, ...)
 #	define YAL_SESSION_CREATE4(var, ...)
 
-#	define YAL_SESSION_GET(var, name)
-#	define YAL_SESSION_GET2(name)
+#	define YAL_SESSION_GET(name)
+#	define YAL_SESSION_GET2(var, name)
 
 #	define YAL_SESSION_EXISTS(name)
 
