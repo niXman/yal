@@ -260,6 +260,8 @@ private:
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_LOGGING
+#	define YAL_EXPAND_EXPR(...) \
+		__VA_ARGS__
 #	define YAL_SET_ROOT_PATH(path) \
 		::yal::logger::root_path(path)
 
@@ -494,6 +496,7 @@ private:
 			do {} while(0)
 #	endif // YAL_DISABLE_LOG_INFO
 #else // YAL_DISABLE_LOGGING == true
+#	define YAL_EXPAND_EXPR(...)
 #	define YAL_SET_ROOT_PATH(path)
 #	define YAL_GET_ROOT_PATH(var)
 #	define YAL_GET_ROOT_PATH2(var)
