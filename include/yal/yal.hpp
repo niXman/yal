@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -47,6 +47,7 @@
 
 #include <climits>
 #include <memory>
+#include <functional>
 
 /***************************************************************************/
 
@@ -101,12 +102,17 @@ const char* level_str(const level lvl);
 
 namespace detail {
 
+using process_buffer = std::function<
+	std::pair<const char*, std::size_t>(const char*, std::size_t)
+>;
+
 struct session: private boost::noncopyable {
 	session(
 		 const std::string &path
 		,const std::string &name
 		,std::size_t volume_size
 		,uint32_t opts
+		,process_buffer broc
 	);
 	virtual ~session();
 
@@ -143,7 +149,7 @@ struct session_manager: private boost::noncopyable {
 	void root_path(const std::string& path);
 
 	std::shared_ptr<session>
-	create(const std::string &name, std::size_t volume_size, uint32_t opts);
+	create(const std::string &name, std::size_t volume_size, uint32_t opts, process_buffer proc);
 
 	void write(
 		 const char *fileline
@@ -180,6 +186,7 @@ struct logger: private boost::noncopyable {
 		 const std::string &name
 		,std::size_t volume_size = UINT_MAX
 		,std::uint32_t opts = options::sec_res
+		,detail::process_buffer proc = foo_processor
 	);
 
 	static yal::session get(const std::string &name);
@@ -197,6 +204,11 @@ struct logger: private boost::noncopyable {
 
 private:
 	static detail::session_manager* instance();
+
+	static std::pair<const char*, std::size_t>
+	foo_processor(const char *ptr, std::size_t size) {
+		return {ptr, size};
+	}
 }; // struct logger
 
 /***************************************************************************/

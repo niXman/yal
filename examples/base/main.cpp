@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -44,7 +44,8 @@ int main() {
 	static const char *s5name = "test5";
 
 	try {
-		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res |yal::flush_each_record);
+		auto lmbd = [](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); };
+		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res |yal::flush_each_record, std::move(lmbd));
 		YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
 		YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res|yal::unbuffered);
 		YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);

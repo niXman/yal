@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2015 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -221,11 +221,12 @@ struct gz_file_io: file_io {};
 /***************************************************************************/
 
 struct session::impl {
-	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts)
+	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts, process_buffer proc)
 		:path(path)
 		,name(name)
 		,volume_size(volume_size)
 		,options(opts)
+		,proc(std::move(proc))
 		,shift_after(YAL_MAX_VOLUME_NUMBER)
 		,file(opts & yal::compress ? (io_base*)new gz_file_io : (io_base*)new file_io)
 		,toterm(false)
@@ -430,7 +431,8 @@ struct session::impl {
 				std::fflush(term);
 		}
 
-		file->write(recbuf.c_str(), reclen);
+		const auto proc_res = proc(recbuf.c_str(), reclen);
+		file->write(proc_res.first, proc_res.second);
 
 		if ( options & flush_each_record )
 			file->flush();
@@ -439,10 +441,7 @@ struct session::impl {
 
 		writen_bytes += reclen;
 		if ( writen_bytes >= volume_size ) {
-//			std::cout << "writen_bytes=" << writen_bytes << std::endl;
-
 			writen_bytes = 0;
-
 			volume_number += 1;
 			create_volume();
 		}
@@ -452,6 +451,7 @@ struct session::impl {
 	const std::string name;
 	const std::size_t volume_size;
 	const std::uint32_t options;
+	const process_buffer proc;
 	std::size_t       shift_after;
 	std::unique_ptr<io_base> file;
 	bool              toterm;
@@ -464,8 +464,8 @@ struct session::impl {
 
 /***************************************************************************/
 
-session::session(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts)
-	:pimpl(new impl(path, name, volume_size, opts))
+session::session(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts, process_buffer proc)
+	:pimpl(new impl(path, name, volume_size, opts, std::move(proc)))
 {}
 
 session::~session()
@@ -566,7 +566,7 @@ void session_manager::root_path(const std::string &path) {
 }
 
 std::shared_ptr<session>
-session_manager::create(const std::string &name, std::size_t volume_size, std::uint32_t opts) {
+session_manager::create(const std::string &name, std::size_t volume_size, std::uint32_t opts, process_buffer proc) {
 	guard_t lock(pimpl->mutex);
 
 	YAL_THROW_IF(!name.empty() && name[0] == '/', "session name can't be a full path");
@@ -593,6 +593,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::u
 		,name
 		,volume_size
 		,opts
+		,std::move(proc)
 	);
 	pimpl->sessions.insert({name, session});
 
@@ -656,8 +657,8 @@ detail::session_manager* logger::instance() {
 
 const std::string &logger::root_path() { return instance()->root_path(); }
 
-session logger::create(const std::string &name, std::size_t volume_size, std::uint32_t opts) {
-	return instance()->create(name, volume_size, opts);
+session logger::create(const std::string &name, std::size_t volume_size, std::uint32_t opts, detail::process_buffer proc) {
+	return instance()->create(name, volume_size, opts, std::move(proc));
 }
 
 yal::session logger::get(const std::string &name) {
