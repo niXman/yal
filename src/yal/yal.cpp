@@ -356,9 +356,9 @@ struct session::impl {
 
 	void write(
 			const char *fileline
-		  ,const std::size_t fileline_len
+		  ,std::size_t fileline_len
 		  ,const char *func
-		  ,const std::size_t func_len
+		  ,std::size_t func_len
 		  ,const std::string &data
 		  ,const level lvl)
 	{
