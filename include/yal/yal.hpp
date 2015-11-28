@@ -37,7 +37,6 @@
 #include <yal/datetime.hpp>
 
 #include <boost/format.hpp>
-#include <boost/noncopyable.hpp>
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/control/if.hpp>
@@ -106,7 +105,10 @@ using process_buffer = std::function<
 	std::pair<const char*, std::size_t>(const char*, std::size_t)
 >;
 
-struct session: private boost::noncopyable {
+struct session {
+	session(const session &) = delete;
+	session& operator=(const session &) = delete;
+
 	session(
 		 const std::string &path
 		,const std::string &name
@@ -141,7 +143,10 @@ private:
 
 /***************************************************************************/
 
-struct session_manager: private boost::noncopyable {
+struct session_manager {
+	session_manager(const session_manager &) = delete;
+	session_manager& operator=(const session_manager &) = delete;
+
 	session_manager();
 	virtual ~session_manager();
 
@@ -178,7 +183,10 @@ private:
 
 using session = std::shared_ptr<detail::session>;
 
-struct logger: private boost::noncopyable {
+struct logger {
+	logger(const logger &) = delete;
+	logger& operator=(const logger &) = delete;
+
 	static void root_path(const std::string &path);
 	static const std::string& root_path();
 
