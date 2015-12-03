@@ -58,6 +58,13 @@ struct exception: std::exception {
 #define _STRINGIZE(x) #x
 #define STRINGIZE(x) _STRINGIZE(x)
 
+#ifdef _WIN32
+#define YAL_THROW_IF(expr, msg) \
+	if ( (expr) ) { \
+		int __ec = errno; \
+		throw ::yal::exception(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + strerror(__ec) + ")"); \
+	}
+#else
 #define YAL_THROW_IF(expr, msg) \
 	if ( (expr) ) { \
 		const int __ec = errno; \
@@ -65,6 +72,7 @@ struct exception: std::exception {
 		const char *__bufp = strerror_r(__ec, __buf, sizeof(__buf)); \
 		throw ::yal::exception(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + __bufp + ")"); \
 	}
+#endif
 
 /***************************************************************************/
 
