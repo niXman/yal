@@ -99,6 +99,25 @@ namespace detail {
 /***************************************************************************/
 /***************************************************************************/
 
+#ifdef _WIN32
+
+int fdatasync(int fd) {
+    (void)fd;
+    return 0;
+}
+
+#ifndef S_IRUSR
+#   define S_IRUSR 0
+#endif // S_IRUSR
+
+#ifndef S_IWUSR
+#   define S_IWUSR 0
+#endif // S_IWUSR
+
+#endif // _WIN32
+
+/***************************************************************************/
+
 static const char *active_ext = ".active";
 
 struct io_base {
