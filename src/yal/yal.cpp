@@ -76,18 +76,13 @@ namespace yal {
 
 /***************************************************************************/
 
-const char* level_str(const level lvl) {
-	static const char info_str[9]     = "info    ";
-	static const char debug_str[9]    = "debug   ";
-	static const char warning_str[9]  = "warning ";
-	static const char error_str[9]    = "error   ";
-	static const char disabled_str[9] = "disabled";
+char level_chr(const level lvl) {
 	return (
-		lvl == yal::info ? info_str
-			: lvl == yal::debug ? debug_str
-				: lvl == yal::warning ? warning_str
-					: lvl == yal::error ? error_str
-						: disabled_str
+		lvl == yal::info ? 'I'
+			: lvl == yal::debug ? 'D'
+				: lvl == yal::warning ? 'W'
+					: lvl == yal::error ? 'E'
+						: 'X'
 	);
 }
 
@@ -102,8 +97,8 @@ namespace detail {
 #ifdef _WIN32
 
 int fdatasync(int fd) {
-    (void)fd;
-    return 0;
+	 (void)fd;
+	 return 0;
 }
 
 #ifndef S_IRUSR
@@ -394,7 +389,7 @@ struct session::impl {
 			 1 // '['
 			+dtlen
 			+2 // ']['
-			+level_str_len // log-level string length
+			+1 // log-level string length
 			+2 // ']['
 			+fileline_len
 			+2 // ']['
@@ -410,17 +405,16 @@ struct session::impl {
 		char dtbuf[32] = "\0";
 		std::memset(dtbuf, ' ', sizeof(dtbuf));
 		datetime_str(dtbuf, sizeof(dtbuf), options);
-		const char *lvlstr = level_str(lvl);
+		const char lvlchr = level_chr(lvl);
 
 		/*********************************************/
-		char *p = (char*)recbuf.c_str();
+		char *p = const_cast<char*>(recbuf.c_str());
 		*p++ = '[';
 		std::memcpy(p, dtbuf, dtlen);
 		p += dtlen;
 		*p++ = ']';
 		*p++ = '[';
-		std::memcpy(p, lvlstr, level_str_len);
-		p += level_str_len;
+		*p++ = lvlchr;
 		*p++ = ']';
 		*p++ = '[';
 		std::memcpy(p, fileline, fileline_len);

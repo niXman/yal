@@ -90,12 +90,7 @@ enum level {
 
 /***************************************************************************/
 
-// constants
-enum {
-	 level_str_len= 8
-};
-
-const char* level_str(const level lvl);
+char level_chr(const level lvl);
 
 /***************************************************************************/
 
