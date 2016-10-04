@@ -124,6 +124,7 @@ struct io_base {
 	virtual void set_buffer(const std::size_t size) = 0;
 	virtual void flush() = 0;
 	virtual void fsync() = 0;
+	virtual std::size_t fpos() = 0;
 
 	static std::string normalize_fname(const std::string &fname) {
 		return fname.substr(0, fname.length()-std::strlen(active_ext));
@@ -168,6 +169,10 @@ struct file_io: io_base {
 		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
 		fdatasync(fileno(file));
 	}
+	std::size_t fpos() {
+		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
+		return static_cast<std::size_t>(std::ftell(file));
+	}
 
 private:
 	FILE *file;
@@ -190,16 +195,16 @@ struct gz_file_io: io_base {
 		YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
 
 		static const char mode[4] = {'w','b','0'+YAL_COMPRESSION_LEVEL,0};
-		gzfile = gzdopen(fd, mode);
+		gzfile = ::gzdopen(fd, mode);
 		YAL_THROW_IF(gzfile == 0, "can't create file \"" +fname+ "\"");
 	}
 	void write(const void *ptr, const std::size_t size) {
 		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
-		YAL_THROW_IF(size != (std::size_t)gzwrite(gzfile, ptr, size), "write error");
+		YAL_THROW_IF(size != (std::size_t)::gzwrite(gzfile, ptr, size), "write error");
 	}
 	void close() {
 		if ( gzfile ) {
-			gzclose(gzfile);
+			::gzclose(gzfile);
 			gzfile = 0;
 
 			::close(fd);
@@ -210,20 +215,25 @@ struct gz_file_io: io_base {
 		}
 	}
 	void set_buffer(const std::size_t size) {
-		gzbuffer(gzfile, size);
+		::gzbuffer(gzfile, size);
 	}
 	void flush() {
 		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
-		gzflush(gzfile, Z_FINISH);
+		::gzflush(gzfile, Z_FINISH);
 	}
 	void fsync() {
 		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		flush();
 		fdatasync(fd);
+	}
+	std::size_t fpos() {
+		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		return static_cast<std::size_t>(::gztell(gzfile));
 	}
 
 private:
 	int fd;
-	gzFile gzfile;
+	::gzFile gzfile;
 	std::string fname;
 };
 #else
@@ -242,7 +252,8 @@ struct session::impl {
 		,options(opts)
 		,proc(std::move(proc))
 		,shift_after(YAL_MAX_VOLUME_NUMBER)
-		,file(opts & yal::compress ? (io_base*)new gz_file_io : (io_base*)new file_io)
+		,logfile(opts & yal::compress ? (io_base*)new gz_file_io : (io_base*)new file_io)
+		,idxfile(opts & create_index_file ? ((opts & yal::compress) ? (io_base*)new gz_file_io : (io_base*)new file_io) : nullptr)
 		,toterm(false)
 		,prefix()
 		,level(yal::info)
@@ -251,7 +262,7 @@ struct session::impl {
 		,volume_number(0)
 	{
 		if ( name != "disable" ) {
-			volume_number = get_last_volume_number(path, name, options & yal::remove_empty_logs);
+			volume_number = get_last_volume_number(path, name, (options & yal::remove_empty_logs));
 			create_volume();
 		} else {
 			level = yal::disable;
@@ -274,10 +285,6 @@ struct session::impl {
 			logpath = path;
 			logfname= name;
 		}
-
-//		if ( (pos=logfname.find('.')) != std::string::npos ) {
-//			logfname = logfname.substr(0, pos);
-//		}
 
 		boost::system::error_code ec;
 		std::vector<std::string> empty_logs;
@@ -355,17 +362,23 @@ struct session::impl {
 		std::snprintf(pathbuf, sizeof(pathbuf), fmt, path.c_str(), name.c_str(), volume_number, datebuf);
 
 		const char *pos = std::strchr(name.c_str(), '.');
-		if ( pos )
+		if ( pos ) {
 			std::strcat(pathbuf, pos);
+		}
 
-		file->create(pathbuf);
+		logfile->create(pathbuf);
+
+		if ( options & create_index_file ) {
+			std::strcat(pathbuf, ".idx");
+			idxfile->create(pathbuf);
+		}
 
 		if ( options & unbuffered )
 			set_buffer(0);
 	}
 
-	void set_buffer(std::size_t size) { file->set_buffer(size); }
-	void flush() { file->flush(); }
+	void set_buffer(std::size_t size) { logfile->set_buffer(size); }
+	void flush() { logfile->flush(); }
 	void to_term(bool ok, const std::string &pref) { toterm = ok; prefix = pref; }
 
 	void write(
@@ -389,7 +402,7 @@ struct session::impl {
 			 1 // '['
 			+dtlen
 			+2 // ']['
-			+1 // log-level string length
+			+1 // log-level char
 			+2 // ']['
 			+fileline_len
 			+2 // ']['
@@ -444,13 +457,40 @@ struct session::impl {
 				std::fflush(term);
 		}
 
-		const auto proc_res = proc(recbuf.c_str(), reclen);
-		file->write(proc_res.first, proc_res.second);
+		if ( options & create_index_file ) {
+			const std::uint32_t off = static_cast<std::uint32_t>(logfile->fpos());
+			const record_index record = {
+				 off // start
+				,1 // dt_off
+				,static_cast<std::uint8_t>(dtlen) // dt_len
+				,2 // lvl_off
+				,1 // lvl_len
+				,2 // fl_off
+				,static_cast<std::uint8_t>(fileline_len) // fl_len
+				,2 // func_off
+				,static_cast<std::uint8_t>(func_len) // func_len
+				,3 // data_off
+				,static_cast<std::uint32_t>(data.size()+1/*for \n */) // data_len
+			};
 
-		if ( options & flush_each_record )
-			file->flush();
-		if ( options & fsync_each_record )
-			file->fsync();
+			idxfile->write(&record, sizeof(record));
+		}
+
+		const auto proc_res = proc(recbuf.c_str(), reclen);
+		logfile->write(proc_res.first, proc_res.second);
+
+		if ( options & flush_each_record ) {
+			logfile->flush();
+			if ( options & create_index_file ) {
+				idxfile->flush();
+			}
+		}
+		if ( options & fsync_each_record ) {
+			logfile->fsync();
+			if ( options & create_index_file ) {
+				idxfile->fsync();
+			}
+		}
 
 		writen_bytes += reclen;
 		if ( writen_bytes >= volume_size ) {
@@ -466,7 +506,8 @@ struct session::impl {
 	const std::uint32_t options;
 	const process_buffer proc;
 	std::size_t       shift_after;
-	std::unique_ptr<io_base> file;
+	std::unique_ptr<io_base> logfile;
+	std::unique_ptr<io_base> idxfile;
 	bool              toterm;
 	std::string       prefix;
 	yal::level        level;
@@ -668,7 +709,7 @@ detail::session_manager* logger::instance() {
 	return object.get();
 }
 
-const std::string &logger::root_path() { return instance()->root_path(); }
+const std::string& logger::root_path() { return instance()->root_path(); }
 
 session logger::create(const std::string &name, std::size_t volume_size, std::uint32_t opts, detail::process_buffer proc) {
 	return instance()->create(name, volume_size, opts, std::move(proc));

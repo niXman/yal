@@ -35,16 +35,17 @@
 namespace yal {
 
 enum options {
-	 sec_res           = 1<<0 // seconds date-time resolution (by default)
-	,usec_res          = 1<<1 // microseconds date-time resolution
-	,nsec_res          = 1<<2 // nanoseconds date-time resolution
-	,remove_empty_logs = 1<<3 // remove empty volumes if exists
-	,unbuffered        = 1<<4 // don't use buffered IO
-	,flush_each_record = 1<<5
-	,fsync_each_record = 1<<6
-	,compress          = 1<<7 // compress volumes
-	,show_func_args    = 1<<8 // don't print functions args, i.e. simply: void func()
-	,hide_full_path    = 1<<9 // don't print full path for file, i.e. simply: file.cpp
+	 sec_res             = 1u<<0  // seconds date-time resolution (by default)
+	,usec_res            = 1u<<1  // microseconds date-time resolution
+	,nsec_res            = 1u<<2  // nanoseconds date-time resolution
+	,remove_empty_logs   = 1u<<3  // remove empty volumes if exists
+	,unbuffered          = 1u<<4  // don't use buffered IO
+	,flush_each_record   = 1u<<5  //
+	,fsync_each_record   = 1u<<6  //
+	,compress            = 1u<<7  // compress volumes
+	,dont_show_func_args = 1u<<8  // don't show func args, i.e. simply: void func()
+	,dont_show_full_path = 1u<<9  // don't show full path for file, i.e. simply: file.cpp
+	,create_index_file   = 1u<<10 // create index-file for each log file
 };
 
 } // ns yal

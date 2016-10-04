@@ -44,6 +44,7 @@
 #include <boost/preprocessor/comparison/equal.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
+#include <cstdint>
 #include <climits>
 #include <memory>
 #include <functional>
@@ -78,8 +79,6 @@
 
 namespace yal {
 
-/***************************************************************************/
-
 enum level {
 	 info    = 4
 	,debug   = 3
@@ -88,9 +87,25 @@ enum level {
 	,disable = 0
 };
 
+char level_chr(const level lvl);
+
 /***************************************************************************/
 
-char level_chr(const level lvl);
+#pragma pack(push, 1)
+struct record_index {
+	std::uint32_t start_pos;
+	std::uint8_t dt_off;
+	std::uint8_t dt_len;
+	std::uint8_t lvl_off;
+	std::uint8_t lvl_len;
+	std::uint8_t fl_off;
+	std::uint8_t fl_len;
+	std::uint8_t func_off;
+	std::uint8_t func_len;
+	std::uint8_t data_off;
+	std::uint32_t data_len;
+};
+#pragma pack(pop)
 
 /***************************************************************************/
 
@@ -209,9 +224,7 @@ private:
 	static detail::session_manager* instance();
 
 	static std::pair<const char*, std::size_t>
-	foo_processor(const char *ptr, std::size_t size) {
-		return {ptr, size};
-	}
+	foo_processor(const char *ptr, std::size_t size) { return {ptr, size}; }
 }; // struct logger
 
 /***************************************************************************/
