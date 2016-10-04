@@ -112,7 +112,6 @@ struct session {
 
 	const std::string& name() const;
 
-	void set_buffer(const std::size_t size);
 	void to_term(const bool ok, const std::string &pref);
 
 	void set_level(const level lvl);

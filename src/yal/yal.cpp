@@ -123,8 +123,6 @@ struct io_base {
 	virtual void create(const std::string &fname) = 0;
 	virtual void write(const void *ptr, const std::size_t size) = 0;
 	virtual void close() = 0;
-	virtual void set_buffer(const std::size_t size) = 0;
-	virtual void flush() = 0;
 	virtual void fsync() = 0;
 	virtual std::size_t fpos() = 0;
 
@@ -135,7 +133,8 @@ struct io_base {
 
 struct file_io: io_base {
 	file_io()
-		:file(0)
+		:fd(-1)
+		,off(0)
 		,fname()
 	{}
 	virtual ~file_io() { close(); }
@@ -143,41 +142,35 @@ struct file_io: io_base {
 	void create(const std::string &fn) {
 		close();
 		fname = fn+active_ext;
-		file = std::fopen(fname.c_str(), "wb");
-		YAL_THROW_IF(file == 0, "can't create file \"" +fname+ "\"");
+		fd = ::open(fname.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
+		YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
 	}
 	void write(const void *ptr, const std::size_t size) {
-		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
-		YAL_THROW_IF(size != std::fwrite(ptr, 1, size, file), "write error");
+		YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
+		YAL_THROW_IF(size != static_cast<std::size_t>(::write(fd, ptr, size)), "write error");
+
+		off += size;
 	}
 	void close() {
-		if ( file ) {
-			std::fclose(file);
-			file = 0;
+		if ( fd != -1 ) {
+			::close(fd);
+			fd = -1;
 
 			boost::system::error_code ec;
 			boost::filesystem::rename(fname, normalize_fname(fname), ec);
 		}
-	}
-	void set_buffer(const std::size_t size) {
-		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
-		std::setvbuf(file, 0, (size ? _IOFBF : _IONBF), size);
-	}
-	void flush() {
-		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
-		std::fflush(file);
+
+		off = 0;
 	}
 	void fsync() {
-		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
-		fdatasync(fileno(file));
+		YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
+		::fdatasync(fd);
 	}
-	std::size_t fpos() {
-		YAL_THROW_IF(file == 0, "file \"" +fname+ "\" is not open");
-		return static_cast<std::size_t>(std::ftell(file));
-	}
+	std::size_t fpos() { return off; }
 
 private:
-	FILE *file;
+	int fd;
+	std::size_t off;
 	std::string fname;
 };
 
@@ -193,21 +186,21 @@ struct gz_file_io: io_base {
 	void create(const std::string &fn) {
 		close();
 		fname = fn+".gz"+active_ext;
-		fd = ::open(fname.c_str(), O_RDWR|O_CREAT, S_IRUSR|S_IWUSR);
+		fd = ::open(fname.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
 		YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
 
-		static const char mode[4] = {'w','b','0'+YAL_COMPRESSION_LEVEL,0};
+		const char mode[4] = {'w','b','0'+YAL_COMPRESSION_LEVEL,0};
 		gzfile = ::gzdopen(fd, mode);
-		YAL_THROW_IF(gzfile == 0, "can't create file \"" +fname+ "\"");
+		YAL_THROW_IF(gzfile == nullptr, "can't create file \"" +fname+ "\"");
 	}
 	void write(const void *ptr, const std::size_t size) {
-		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
 		YAL_THROW_IF(size != (std::size_t)::gzwrite(gzfile, ptr, size), "write error");
 	}
 	void close() {
 		if ( gzfile ) {
 			::gzclose(gzfile);
-			gzfile = 0;
+			gzfile = nullptr;
 
 			::close(fd);
 			fd = -1;
@@ -216,20 +209,13 @@ struct gz_file_io: io_base {
 			boost::filesystem::rename(fname, normalize_fname(fname), ec);
 		}
 	}
-	void set_buffer(const std::size_t size) {
-		::gzbuffer(gzfile, size);
-	}
-	void flush() {
-		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
-		::gzflush(gzfile, Z_FINISH);
-	}
 	void fsync() {
-		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
-		flush();
-		fdatasync(fd);
+		YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
+		::gzflush(gzfile, Z_FINISH);
+		::fdatasync(fd);
 	}
 	std::size_t fpos() {
-		YAL_THROW_IF(gzfile == 0 || fd == -1, "file \"" +fname+ "\" is not open");
+		YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
 		return static_cast<std::size_t>(::gztell(gzfile));
 	}
 
@@ -247,6 +233,13 @@ struct gz_file_io: file_io {};
 /***************************************************************************/
 
 struct session::impl {
+	static io_base* create_io(std::uint32_t opts) {
+		return (opts & yal::compress)
+			? static_cast<io_base*>(new gz_file_io)
+			: static_cast<io_base*>(new file_io)
+		;
+	}
+
 	impl(const std::string &path, const std::string &name, std::size_t volume_size, std::uint32_t opts, process_buffer proc)
 		:path(path)
 		,name(name)
@@ -254,8 +247,8 @@ struct session::impl {
 		,options(opts)
 		,proc(std::move(proc))
 		,shift_after(YAL_MAX_VOLUME_NUMBER)
-		,logfile(opts & yal::compress ? (io_base*)new gz_file_io : (io_base*)new file_io)
-		,idxfile(opts & create_index_file ? ((opts & yal::compress) ? (io_base*)new gz_file_io : (io_base*)new file_io) : nullptr)
+		,logfile(create_io(opts))
+		,idxfile(opts & create_index_file ? (create_io(opts)) : nullptr)
 		,toterm(false)
 		,prefix()
 		,level(yal::info)
@@ -270,7 +263,9 @@ struct session::impl {
 			level = yal::disable;
 		}
 	}
-	~impl() {}
+	~impl() {
+		flush();
+	}
 
 	static std::string final_log_fname(const std::string &fname) {
 		return fname.substr(0, fname.length()-std::strlen(active_ext));
@@ -374,13 +369,13 @@ struct session::impl {
 			std::strcat(pathbuf, ".idx");
 			idxfile->create(pathbuf);
 		}
-
-		if ( options & unbuffered )
-			set_buffer(0);
 	}
 
-	void set_buffer(std::size_t size) { logfile->set_buffer(size); }
-	void flush() { logfile->flush(); }
+	void flush() {
+		logfile->fsync();
+		if ( options & create_index_file )
+			idxfile->fsync();
+	}
 	void to_term(bool ok, const std::string &pref) { toterm = ok; prefix = pref; }
 
 	void write(
@@ -454,9 +449,7 @@ struct session::impl {
 			} else {
 				std::fprintf(term, "%s", recbuf.c_str());
 			}
-
-			if ( options & flush_each_record )
-				std::fflush(term);
+			std::fflush(term);
 		}
 
 		if ( options & create_index_file ) {
@@ -472,7 +465,7 @@ struct session::impl {
 				,2 // func_off
 				,static_cast<std::uint8_t>(func_len) // func_len
 				,3 // data_off
-				,static_cast<std::uint32_t>(data.size()+1/*for \n */) // data_len
+				,static_cast<std::uint32_t>(data.size()+1/*for '\n' */) // data_len
 			};
 
 			idxfile->write(&record, sizeof(record));
@@ -481,12 +474,6 @@ struct session::impl {
 		const auto proc_res = proc(recbuf.c_str(), reclen);
 		logfile->write(proc_res.first, proc_res.second);
 
-		if ( options & flush_each_record ) {
-			logfile->flush();
-			if ( options & create_index_file ) {
-				idxfile->flush();
-			}
-		}
 		if ( options & fsync_each_record ) {
 			logfile->fsync();
 			if ( options & create_index_file ) {
@@ -530,7 +517,6 @@ session::~session()
 /***************************************************************************/
 
 const std::string& session::name() const { return pimpl->name; }
-void session::set_buffer(const std::size_t size) { pimpl->set_buffer(size); }
 void session::to_term(const bool ok, const std::string &pref) { pimpl->to_term(ok, pref); }
 void session::set_level(const level lvl) { pimpl->level = lvl; }
 level session::get_level() const { return pimpl->level; }

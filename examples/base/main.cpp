@@ -44,10 +44,11 @@ int main() {
 	static const char *s5name = "test5";
 
 	try {
-		auto lmbd = [](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); };
-		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res |yal::flush_each_record, std::move(lmbd));
+		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res,
+			[](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
+		);
 		YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
-		YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res|yal::unbuffered);
+		YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res);
 		YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);
 //		YAL_SESSION_TO_TERM(test1, true, "term1");
 
@@ -96,7 +97,7 @@ int main() {
 		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s4name));
 		YAL_ASSERT_TERM(std::cerr, !YAL_SESSION_EXISTS(s5name));
 
-		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res|yal::flush_each_record);
+		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res);
 		YAL_SESSION_TO_TERM(test5, true, "test5 term");
 		YAL_TEST_LESS		(test5, 0, 1);
 		YAL_TEST_LESS		(test5, 1, 1); // test fail

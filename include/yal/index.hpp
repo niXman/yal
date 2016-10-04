@@ -69,10 +69,10 @@ struct index_data {
 
 /**************************************************************************/
 
-std::size_t index_count(std::FILE *idxfile);
-bool index_read(index_record *idx, std::size_t n, std::FILE *idxfile);
-bool index_read_data(index_data *data, const index_record &idx, std::FILE *logfile);
-bool index_read_data(index_data *data, std::size_t n, std::FILE *logfile, std::FILE *idxfile);
+std::size_t index_count(int idxfd);
+bool index_read(index_record *idx, std::size_t n, int idxfd);
+bool index_read_data(index_data *data, const index_record &idx, int logfd);
+bool index_read_data(index_data *data, std::size_t n, int idxfd, int logfd);
 
 /**************************************************************************/
 
