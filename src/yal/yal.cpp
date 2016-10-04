@@ -33,6 +33,7 @@
 
 #include <cstdio>
 #include <cctype>
+#include <cmath>
 
 #include <unordered_map>
 #include <algorithm>
