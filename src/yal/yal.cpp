@@ -30,6 +30,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <yal/yal.hpp>
+#include <yal/index.hpp>
 
 #include <cstdio>
 #include <cctype>
@@ -460,7 +461,7 @@ struct session::impl {
 
 		if ( options & create_index_file ) {
 			const std::uint32_t off = static_cast<std::uint32_t>(logfile->fpos());
-			const record_index record = {
+			const index_record record = {
 				 off // start
 				,1 // dt_off
 				,static_cast<std::uint8_t>(dtlen) // dt_len

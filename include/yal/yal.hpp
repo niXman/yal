@@ -91,24 +91,6 @@ char level_chr(const level lvl);
 
 /***************************************************************************/
 
-#pragma pack(push, 1)
-struct record_index {
-	std::uint32_t start_pos;
-	std::uint8_t dt_off;
-	std::uint8_t dt_len;
-	std::uint8_t lvl_off;
-	std::uint8_t lvl_len;
-	std::uint8_t fl_off;
-	std::uint8_t fl_len;
-	std::uint8_t func_off;
-	std::uint8_t func_len;
-	std::uint8_t data_off;
-	std::uint32_t data_len;
-};
-#pragma pack(pop)
-
-/***************************************************************************/
-
 namespace detail {
 
 using process_buffer = std::function<
