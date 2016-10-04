@@ -44,7 +44,7 @@ int main() {
 	static const char *s5name = "test5";
 
 	try {
-		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res,
+		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res|yal::create_index_file,
 			[](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
 		);
 		YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);

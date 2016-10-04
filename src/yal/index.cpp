@@ -105,10 +105,10 @@ bool index_read_data(index_data *data, const index_record &idx, int logfd) {
 bool index_read_data(index_data *data, std::size_t n, int idxfd, int logfd) {
 	index_record rec;
 
-	if ( !index_read(&rec, n, logfd) )
+	if ( !index_read(&rec, n, idxfd) )
 		return false;
 
-	return index_read_data(data, rec, idxfd);
+	return index_read_data(data, rec, logfd);
 }
 
 /**************************************************************************/
