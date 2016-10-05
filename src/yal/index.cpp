@@ -113,4 +113,18 @@ bool index_read_data(index_data *data, std::size_t n, int idxfd, int logfd) {
 
 /**************************************************************************/
 
+bool index_read_all(std::vector<index_data> *data, int idxfd, int logfd) {
+	const auto size = index_count(idxfd);
+	data->resize(size);
+
+	for ( auto it = data->begin(); it != data->end(); ++it ) {
+		if ( !index_read_data(&(*it), std::distance(data->begin(), it), idxfd, logfd) )
+			return false;
+	}
+
+	return true;
+}
+
+/**************************************************************************/
+
 } // ns yal
