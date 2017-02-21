@@ -61,8 +61,7 @@ int main() {
 
 	const std::vector<std::string> dst = get_list_of_files();
 
-	const bool ok = (src == dst);
-	YAL_ASSERT_TERM(std::cerr, ok);
+	YAL_ASSERT_TERM(std::cerr, src == dst);
 }
 
 /***************************************************************************/

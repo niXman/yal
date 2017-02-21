@@ -36,6 +36,24 @@
 
 #include <cstdint>
 
+/***************************************************************************/
+
+#define YAL_DATE_FORMAT_DMY (0) // day.month.year
+#define YAL_DATE_FORMAT_YMD (1) // year.month.day
+#define YAL_DATE_FORMAT_MDY (2) // month.day.year
+
+#ifndef YAL_DATE_FORMAT
+#	define YAL_DATE_FORMAT YAL_DATE_FORMAT_YMD
+#endif // YAL_DATE_FORMAT
+
+#if !(YAL_DATE_FORMAT == YAL_DATE_FORMAT_DMY || \
+        YAL_DATE_FORMAT == YAL_DATE_FORMAT_YMD || \
+        YAL_DATE_FORMAT == YAL_DATE_FORMAT_MDY)
+#error "bad YAL_DATE_FORMAT"
+#endif
+
+/***************************************************************************/
+
 namespace yal {
 
 // constants
@@ -51,5 +69,7 @@ const char* usec_datetime_str(char *buf, const std::size_t buf_size);
 const char* nsec_datetime_str(char *buf, const std::size_t buf_size);
 
 } // ns yal
+
+/***************************************************************************/
 
 #endif // _yal__datetime_hpp

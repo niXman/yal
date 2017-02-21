@@ -220,7 +220,7 @@ std::size_t datetime_str(char *buf, std::uint32_t res) {
 		p += itoa(p, ts.tv_nsec);
 	}
 
-	return p-buf;
+    return static_cast<std::size_t>(p-buf);
 }
 
 } // ns detail
