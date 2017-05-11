@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2017 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -41,8 +41,8 @@ enum options {
 	,remove_empty_logs   = 1u<<3  // remove empty volumes if exists
 	,fsync_each_record   = 1u<<4  // fdatasync's each record
 	,compress            = 1u<<5  // compress volumes
-	,dont_show_func_args = 1u<<6  // don't show func args, i.e. simply: void func()
-	,dont_show_full_path = 1u<<7  // don't show full path for file, i.e. simply: file.cpp
+    ,full_source_name    = 1u<<6  // don't show full file path
+	,full_func_name      = 1u<<7  // i.e. 'void func(int)'
 	,create_index_file   = 1u<<8  // create index-file for each log file
 };
 

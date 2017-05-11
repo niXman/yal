@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2017 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -263,7 +263,7 @@ struct session::impl {
         ,volume_number(0)
     {
         if ( name != "disable" ) {
-            volume_number = get_last_volume_number(path, name, (options & yal::remove_empty_logs));
+            volume_number = get_last_volume_number(path, name, ((options & yal::remove_empty_logs)>0));
             create_volume();
         } else {
             level = yal::disable;
@@ -357,7 +357,7 @@ struct session::impl {
             shift_after = shift_after * 10 + 9;
         }
 
-        const int digits = std::log10(shift_after)+1;
+        const int digits = static_cast<int>(std::log10(shift_after)+1);
         std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
         sec_datetime_str(datebuf, sizeof(datebuf));
@@ -393,8 +393,10 @@ struct session::impl {
     void to_term(bool ok, const std::string &pref) { toterm = ok; prefix = pref; }
 
     void write(
-            const char *fileline
+             const char *fileline
             ,std::size_t fileline_len
+            ,const char *sfunc
+            ,std::size_t sfunc_len
             ,const char *func
             ,std::size_t func_len
             ,const std::string &data
@@ -409,6 +411,21 @@ struct session::impl {
                     : sec_res_len
         ); // date-time string length
 
+        if ( !(options & full_source_name) ) {
+            const char *p = std::strrchr(fileline, '/');
+            if ( p ) {
+                fileline = p+1;
+                fileline_len = std::strlen(fileline);
+            }
+        }
+
+        std::size_t lfunc_len = sfunc_len;
+        const char *lfunc_name = sfunc;
+        if ( options & full_func_name ) {
+            lfunc_len = func_len;
+            lfunc_name = func;
+        }
+
         const std::size_t reclen =
             1 // '['
             +dtlen
@@ -417,7 +434,7 @@ struct session::impl {
             +2 // ']['
             +fileline_len
             +2 // ']['
-            +func_len
+            +lfunc_len
             +3 // ']: '
             +data.length()
             +1 // '\n'
@@ -445,8 +462,8 @@ struct session::impl {
         p += fileline_len;
         *p++ = ']';
         *p++ = '[';
-        std::memcpy(p, func, func_len);
-        p += func_len;
+        std::memcpy(p, lfunc_name, lfunc_len);
+        p += lfunc_len;
         *p++ = ']';
         *p++ = ':';
         *p++ = ' ';
@@ -477,7 +494,7 @@ struct session::impl {
                 ,2 // fl_off
                 ,static_cast<std::uint8_t>(fileline_len) // fl_len
                 ,2 // func_off
-                ,static_cast<std::uint8_t>(func_len) // func_len
+                ,static_cast<std::uint8_t>(lfunc_len) // func_len
                 ,3 // data_off
                 ,static_cast<std::uint32_t>(data.size()+1/*for '\n' */) // data_len
             };
@@ -548,12 +565,14 @@ level session::get_level() const { return pimpl->level; }
 void session::write(
      const char *fileline
     ,const std::size_t fileline_len
+    ,const char *sfunc
+    ,const std::size_t sfunc_len
     ,const char *func
     ,const std::size_t func_len
     ,const std::string &data
     ,const level lvl)
 {
-    pimpl->write(fileline, fileline_len, func, func_len, data, lvl);
+    pimpl->write(fileline, fileline_len, sfunc, sfunc_len, func, func_len, data, lvl);
 }
 
 void session::flush() { pimpl->flush(); }
@@ -670,6 +689,8 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::u
 void session_manager::write(
     const char *fileline
     ,const std::size_t fileline_len
+    ,const char *sfunc
+    ,const std::size_t sfunc_len
     ,const char *func
     ,const std::size_t func_len
     ,const std::string &data
@@ -678,9 +699,9 @@ void session_manager::write(
     guard_t lock(pimpl->mutex);
 
     pimpl->iterate(
-        [fileline, fileline_len, func, func_len, &data, lvl](yal::session s) {
+        [fileline, fileline_len, sfunc, sfunc_len, func, func_len, &data, lvl](yal::session s) {
             if ( s->get_level() >= lvl )
-                s->write(fileline, fileline_len, func, func_len, data, lvl);
+                s->write(fileline, fileline_len, sfunc, sfunc_len, func, func_len, data, lvl);
         }
     );
 }
@@ -738,12 +759,14 @@ yal::session logger::get(const std::string &name) {
 void logger::write(
      const char *fileline
     ,const std::size_t fileline_len
+    ,const char *sfunc
+    ,const std::size_t sfunc_len
     ,const char *func
     ,const std::size_t func_len
     ,const std::string &data
     ,const level lvl)
 {
-    instance()->write(fileline, fileline_len, func, func_len, data, lvl);
+    instance()->write(fileline, fileline_len, sfunc, sfunc_len, func, func_len, data, lvl);
 }
 
 void logger::flush() { instance()->flush(); }

@@ -53,30 +53,30 @@ int main() {
 //		YAL_SESSION_TO_TERM(test1, true, "term1");
 
 		for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {
-			YAL_LOG_INFO	(test1, "%1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_DEBUG	(test1, "%1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_WARNING(test1, "%1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_ERROR	(test1, "%1% -> %2% -> %1%", idx, idx+1);
+			YAL_LOG_INFO          (test1, "test1-I: %1% -> %2% -> %1%", idx, idx+1);
+			YAL_LOG_DEBUG         (test1, "test1-D: %1% -> %2% -> %1%", idx, idx+1);
+			YAL_LOG_WARNING       (test1, "test1-W: %1% -> %2% -> %1%", idx, idx+1);
+			YAL_LOG_ERROR         (test1, "test1-E: %1% -> %2% -> %1%", idx, idx+1);
 
-			YAL_LOG_INFO	(test2, "%016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG	(test2, "%016d -> %016d", idx, idx);
-			YAL_LOG_WARNING(test2, "%016d -> %016d", idx, idx);
-			YAL_LOG_ERROR	(test2, "%016d -> %016d", idx, idx);
+			YAL_LOG_INFO          (test2, "test2-I: %016d -> %016d", idx, idx);
+			YAL_LOG_DEBUG         (test2, "test2-D: %016d -> %016d", idx, idx);
+			YAL_LOG_WARNING       (test2, "test2-W: %016d -> %016d", idx, idx);
+			YAL_LOG_ERROR         (test2, "test2-E: %016d -> %016d", idx, idx);
 
-			YAL_LOG_INFO	(test3, "%016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG	(test3, "%016d -> %016d", idx, idx);
-			YAL_LOG_WARNING(test3, "%016d -> %016d", idx, idx);
-			YAL_LOG_ERROR	(test3, "%016d -> %016d", idx, idx);
+			YAL_LOG_INFO          (test3, "test3-I: %016d -> %016d", idx, idx);
+			YAL_LOG_DEBUG         (test3, "test3-D: %016d -> %016d", idx, idx);
+			YAL_LOG_WARNING       (test3, "test3-W: %016d -> %016d", idx, idx);
+			YAL_LOG_ERROR         (test3, "test3-E: %016d -> %016d", idx, idx);
 
-			YAL_LOG_INFO	(test4, "%016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG	(test4, "%016d -> %016d", idx, idx);
-			YAL_LOG_WARNING(test4, "%016d -> %016d", idx, idx);
-			YAL_LOG_ERROR	(test4, "%016d -> %016d", idx, idx);
+			YAL_LOG_INFO          (test4, "test4-I: %016d -> %016d", idx, idx);
+			YAL_LOG_DEBUG         (test4, "test4-D: %016d -> %016d", idx, idx);
+			YAL_LOG_WARNING       (test4, "test4-W: %016d -> %016d", idx, idx);
+			YAL_LOG_ERROR         (test4, "test4-E: %016d -> %016d", idx, idx);
 
-			YAL_GLOBAL_LOG_INFO		("%016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_DEBUG		("%016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_WARNING	("%016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_ERROR		("%016d -> %016d", idx2, idx2);
+			YAL_GLOBAL_LOG_INFO   ("global-I: %016d -> %016d", idx2, idx2);
+			YAL_GLOBAL_LOG_DEBUG  ("global-D: %016d -> %016d", idx2, idx2);
+			YAL_GLOBAL_LOG_WARNING("global-W: %016d -> %016d", idx2, idx2);
+			YAL_GLOBAL_LOG_ERROR  ("global-E: %016d -> %016d", idx2, idx2);
 		}
 		YAL_FLUSH();
 
@@ -99,26 +99,26 @@ int main() {
 
 		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res);
 		YAL_SESSION_TO_TERM(test5, true, "test5 term");
-		YAL_TEST_LESS		(test5, 0, 1);
-		YAL_TEST_LESS		(test5, 1, 1); // test fail
-		YAL_TEST_LESSEQ	(test5, 1, 1);
-		YAL_TEST_LESSEQ	(test5, 2, 1); // test fail
-		YAL_TEST_EQ			(test5, 1, 1);
-		YAL_TEST_EQ			(test5, 2, 1); // test fail
-		YAL_TEST_NEQ		(test5, 0, 1);
-		YAL_TEST_NEQ		(test5, 1, 1); // test fail
-		YAL_TEST_GR			(test5, 1, 0);
-		YAL_TEST_GR			(test5, 1, 1); // test fail
-		YAL_TEST_GREQ		(test5, 1, 0);
-		YAL_TEST_GREQ		(test5, 1, 2); // test fail
-		YAL_TEST_ZERO		(test5, 0);
-		YAL_TEST_ZERO		(test5, 1); // test fail
-		YAL_TEST_NOTZERO	(test5, 1);
-		YAL_TEST_NOTZERO	(test5, 0); // test fail
-		YAL_TEST_NULL		(test5, nullptr);
-		YAL_TEST_NULL		(test5, "cstring"); // test fail
-		YAL_TEST_NOTNULL	(test5, "cstring");
-		YAL_TEST_NOTNULL	(test5, nullptr); // test fail
+		YAL_TEST_LESS   (test5, 0, 1);
+		YAL_TEST_LESS   (test5, 1, 1); // test fail
+		YAL_TEST_LESSEQ (test5, 1, 1);
+		YAL_TEST_LESSEQ (test5, 2, 1); // test fail
+		YAL_TEST_EQ     (test5, 1, 1);
+		YAL_TEST_EQ     (test5, 2, 1); // test fail
+		YAL_TEST_NEQ    (test5, 0, 1);
+		YAL_TEST_NEQ    (test5, 1, 1); // test fail
+		YAL_TEST_GR     (test5, 1, 0);
+		YAL_TEST_GR     (test5, 1, 1); // test fail
+		YAL_TEST_GREQ   (test5, 1, 0);
+		YAL_TEST_GREQ   (test5, 1, 2); // test fail
+		YAL_TEST_ZERO   (test5, 0);
+		YAL_TEST_ZERO   (test5, 1); // test fail
+		YAL_TEST_NOTZERO(test5, 1);
+		YAL_TEST_NOTZERO(test5, 0); // test fail
+		YAL_TEST_NULL   (test5, nullptr);
+		YAL_TEST_NULL   (test5, "cstring"); // test fail
+		YAL_TEST_NOTNULL(test5, "cstring");
+		YAL_TEST_NOTNULL(test5, nullptr); // test fail
 
 #if 0
 		YAL_ASSERT_LOG(test5, true);

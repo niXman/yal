@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2016 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2017 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -45,6 +45,7 @@
 #include <boost/preprocessor/stringize.hpp>
 
 #include <cstdint>
+#include <cstring>
 #include <climits>
 #include <memory>
 #include <functional>
@@ -104,6 +105,8 @@ struct session {
     void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfunc
+        ,const std::size_t sfunc_len
         ,const char *func
         ,const std::size_t func_len
         ,const std::string &data
@@ -134,6 +137,8 @@ struct session_manager {
     void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfunc
+        ,const std::size_t sfunc_len
         ,const char *func
         ,const std::size_t func_len
         ,const std::string &data
@@ -177,6 +182,8 @@ struct logger {
     static void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfunc
+        ,const std::size_t sfunc_len
         ,const char *func
         ,const std::size_t func_len
         ,const std::string &data
@@ -304,11 +311,13 @@ private:
 
 #	define __YAL_LOG_IMPL(log, errlvl, ...) \
         do { \
-            static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
             if ( log->get_level() >= ::yal::level::errlvl ) { \
+                static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
                 log->write( \
                      flbuf \
                     ,sizeof(flbuf)-1 \
+                    ,__FUNCTION__ \
+                    ,sizeof(__FUNCTION__)-1 \
                     ,__PRETTY_FUNCTION__ \
                     ,sizeof(__PRETTY_FUNCTION__)-1 \
                     ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -322,6 +331,8 @@ private:
             ::yal::logger::write( \
                  flbuf \
                 ,sizeof(flbuf)-1 \
+                ,__FUNCTION__ \
+                ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
                 ,sizeof(__PRETTY_FUNCTION__)-1 \
                 ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
@@ -462,6 +473,8 @@ private:
             log->write( \
                  flbuf \
                 ,sizeof(flbuf)-1 \
+                ,__FUNCTION__ \
+                ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
                 ,sizeof(__PRETTY_FUNCTION__)-1 \
                 ,"assert \"" #__VA_ARGS__ "\" is false" \
@@ -512,6 +525,8 @@ struct timepoint {
             log->write( \
                  flbuf \
                 ,sizeof(flbuf)-1 \
+                ,__FUNCTION__ \
+                ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
                 ,sizeof(__PRETTY_FUNCTION__)-1 \
                 ,YAL_FORMAT_MESSAGE_AS_STRING( \
@@ -556,9 +571,13 @@ struct timepoint {
             YAL_LOG_ERROR(log, "[unknown_exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag##_line, __LINE__, msg); \
         }
 #else
-#	define YAL_TRY(flag) \
+#   define YAL_TRY(flag) \
         try
-#define YAL_CATCH(log, flag, msg) \
+#	define YAL_TYPED_CATCH(log, extype, flag, msg) \
+    catch (const extype &ex) { \
+        throw ex; \
+    }
+#   define YAL_CATCH(log, flag, msg) \
     catch (...) { \
         throw; \
     }
