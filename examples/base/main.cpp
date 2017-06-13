@@ -155,6 +155,15 @@ int main() {
 		YAL_CATCH(test5, scope_flag2, "catch3 message")
 		YAL_ASSERT_LOG(test5, scope_flag2);
 
+        YAL_TRY(scope_flag3) {
+            YAL_THROW("test throw0");
+        } YAL_TYPED_CATCH(test5, std::runtime_error, scope_flag3, "catch4 message")
+        YAL_ASSERT_LOG(test5, scope_flag3);
+
+        YAL_TRY(scope_flag4) {
+            YAL_TYPED_THROW(std::invalid_argument, "test throw1");
+        } YAL_TYPED_CATCH(test5, std::invalid_argument, scope_flag4, "catch5 message")
+        YAL_ASSERT_LOG(test5, scope_flag4);
 	} catch(const std::exception &ex) {
 		std::cout << "[std::exception]: " << ex.what() << std::endl;
 		return EXIT_FAILURE;

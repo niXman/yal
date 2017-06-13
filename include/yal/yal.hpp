@@ -584,4 +584,23 @@ struct timepoint {
 
 /***************************************************************************/
 
+#ifndef YAL_DISABLE_THROW
+#   define __YAL_MAKE_FILELINE() __FILE__ "(" BOOST_PP_STRINGIZE(__LINE__) "): "
+#   define YAL_THROW(msg) throw std::runtime_error(__YAL_MAKE_FILELINE() msg);
+#   define YAL_TYPED_THROW(type, msg) throw type(__YAL_MAKE_FILELINE() msg);
+#   define YAL_THROW_IF(expr) if ( (expr) ) YAL_THROW(#expr)
+#   define YAL_TYPED_THROW_IF(type, expr) if ( (expr) ) YAL_TYPED_THROW(type, #expr)
+#   define YAL_TEST_THROW(expr) if ( !(expr) ) YAL_THROW(#expr)
+#   define YAL_TEST_TYPED_THROW(type, expr) if ( !(expr) ) YAL_TYPED_THROW(type, #expr)
+#else
+#   define YAL_THROW(msg)
+#   define YAL_TYPED_THROW(type, msg)
+#   define YAL_THROW_IF(expr)
+#   define YAL_TYPED_THROW_IF(type, expr)
+#   define YAL_TEST_THROW(expr)
+#   define YAL_TEST_TYPED_THROW(type, expr)
+#endif // YAL_DISABLE_THROW
+
+/***************************************************************************/
+
 #endif // _yal__yal_hpp
