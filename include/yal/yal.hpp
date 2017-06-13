@@ -32,7 +32,6 @@
 #ifndef _yal__yal_hpp
 #define _yal__yal_hpp
 
-#include <yal/throw.hpp>
 #include <yal/options.hpp>
 #include <yal/datetime.hpp>
 

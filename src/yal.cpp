@@ -31,6 +31,7 @@
 
 #include <yal/yal.hpp>
 #include <yal/index.hpp>
+#include <yal/throw.hpp>
 
 #include <cstdio>
 #include <cctype>
