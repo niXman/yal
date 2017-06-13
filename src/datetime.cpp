@@ -233,7 +233,7 @@ const char *datetime_str(char *buf, const std::size_t buf_size, std::uint32_t op
 				? usec_res_len
 				: nsec_res_len
 	);
-	YAL_THROW_IF(buf_size < expbufsize, "buffer size is less than " + std::to_string(expbufsize));
+	__YAL_THROW_IF(buf_size < expbufsize, "buffer size is less than " + std::to_string(expbufsize));
 
 	detail::datetime_str(buf, opts);
 
@@ -241,17 +241,17 @@ const char *datetime_str(char *buf, const std::size_t buf_size, std::uint32_t op
 }
 
 const char* sec_datetime_str(char *buf, const std::size_t buf_size) {
-	YAL_THROW_IF(buf_size < sec_res_len, "buffer size is less than " + std::to_string(sec_res_len));
+	__YAL_THROW_IF(buf_size < sec_res_len, "buffer size is less than " + std::to_string(sec_res_len));
 	detail::datetime_str(buf, sec_res);
 	return buf;
 }
 const char* usec_datetime_str(char *buf, const std::size_t buf_size) {
-	YAL_THROW_IF(buf_size < usec_res_len, "buffer size is less than " + std::to_string(usec_res_len));
+	__YAL_THROW_IF(buf_size < usec_res_len, "buffer size is less than " + std::to_string(usec_res_len));
 	detail::datetime_str(buf, usec_res);
 	return buf;
 }
 const char* nsec_datetime_str(char *buf, const std::size_t buf_size) {
-	YAL_THROW_IF(buf_size < nsec_res_len, "buffer size is less than " + std::to_string(nsec_res_len));
+	__YAL_THROW_IF(buf_size < nsec_res_len, "buffer size is less than " + std::to_string(nsec_res_len));
 	detail::datetime_str(buf, nsec_res);
 	return buf;
 }

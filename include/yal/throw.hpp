@@ -55,22 +55,22 @@ struct exception: std::exception {
 
 } // ns yal
 
-#define _STRINGIZE(x) #x
-#define STRINGIZE(x) _STRINGIZE(x)
+#define __YAL_STRINGIZE_AUX(x) #x
+#define __YAL_STRINGIZE(x) __YAL_STRINGIZE_AUX(x)
 
 #ifdef _WIN32
-#define YAL_THROW_IF(expr, msg) \
+#define __YAL_THROW_IF(expr, msg) \
 	if ( (expr) ) { \
 		int __ec = errno; \
-		throw ::yal::exception(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + strerror(__ec) + ")"); \
+		throw ::yal::exception(std::string("YAL: " __FILE__ "(" __YAL_STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + strerror(__ec) + ")"); \
 	}
 #else
-#define YAL_THROW_IF(expr, msg) \
+#define __YAL_THROW_IF(expr, msg) \
 	if ( (expr) ) { \
 		const int __ec = errno; \
 		char __buf[1024] = "\0"; \
 		const char *__bufp = strerror_r(__ec, __buf, sizeof(__buf)); \
-		throw ::yal::exception(std::string("YAL: " __FILE__ "(" STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + __bufp + ")"); \
+		throw ::yal::exception(std::string("YAL: " __FILE__ "(" __YAL_STRINGIZE(__LINE__) "): \"") + msg + "\", errno=" + std::to_string(__ec) + "(" + __bufp + ")"); \
 	}
 #endif
 

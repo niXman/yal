@@ -143,11 +143,11 @@ struct file_io: io_base {
         close();
         fname = fn+active_ext;
         fd = ::open(fname.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
-        YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
+        __YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
     }
     void write(const void *ptr, const std::size_t size) {
-        YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
-        YAL_THROW_IF(size != static_cast<std::size_t>(::write(fd, ptr, size)), "write error");
+        __YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
+        __YAL_THROW_IF(size != static_cast<std::size_t>(::write(fd, ptr, size)), "write error");
 
         off += size;
     }
@@ -163,7 +163,7 @@ struct file_io: io_base {
         off = 0;
     }
     void fsync() {
-        YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
+        __YAL_THROW_IF(fd == -1, "file \"" +fname+ "\" is not open");
         ::fdatasync(fd);
     }
     std::size_t fpos() { return off; }
@@ -187,15 +187,15 @@ struct gz_file_io: io_base {
         close();
         fname = fn+".gz"+active_ext;
         fd = ::open(fname.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
-        YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
+        __YAL_THROW_IF(fd == -1, "can't create file \"" +fname+ "\"");
 
         const char mode[4] = {'w','b','0'+YAL_COMPRESSION_LEVEL,0};
         gzfile = ::gzdopen(fd, mode);
-        YAL_THROW_IF(gzfile == nullptr, "can't create file \"" +fname+ "\"");
+        __YAL_THROW_IF(gzfile == nullptr, "can't create file \"" +fname+ "\"");
     }
     void write(const void *ptr, const std::size_t size) {
-        YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
-        YAL_THROW_IF(size != (std::size_t)::gzwrite(gzfile, ptr, size), "write error");
+        __YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
+        __YAL_THROW_IF(size != (std::size_t)::gzwrite(gzfile, ptr, size), "write error");
     }
     void close() {
         if ( gzfile ) {
@@ -210,12 +210,12 @@ struct gz_file_io: io_base {
         }
     }
     void fsync() {
-        YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
+        __YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
         ::gzflush(gzfile, Z_FINISH);
         ::fdatasync(fd);
     }
     std::size_t fpos() {
-        YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
+        __YAL_THROW_IF(gzfile == nullptr || fd == -1, "file \"" +fname+ "\" is not open");
         return static_cast<std::size_t>(::gztell(gzfile));
     }
 
@@ -305,7 +305,7 @@ struct session::impl {
 
             if ( remove_empty ) {
                 const auto filesize = boost::filesystem::file_size(*fs_beg, ec);
-                YAL_THROW_IF(ec, "can't get filesize(" +path+ "): " + ec.message());
+                __YAL_THROW_IF(ec, "can't get filesize(" +path+ "): " + ec.message());
                 if ( filesize == 0 ) {
                     empty_logs.push_back(path);
                     continue;
@@ -336,13 +336,13 @@ struct session::impl {
         ec.clear();
         for ( const auto &it: empty_logs ) {
             boost::filesystem::remove(it, ec);
-            YAL_THROW_IF(ec, "can't remove empty volume(" +it+ "): " + ec.message());
+            __YAL_THROW_IF(ec, "can't remove empty volume(" +it+ "): " + ec.message());
         }
 
         ec.clear();
         for ( const auto &it: for_rename ) {
             boost::filesystem::rename(it, final_log_fname(it), ec);
-            YAL_THROW_IF(ec, "can't rename unfinished volume(" +it+ "): " + ec.message());
+            __YAL_THROW_IF(ec, "can't rename unfinished volume(" +it+ "): " + ec.message());
         }
 
         return volnum;
@@ -643,7 +643,7 @@ void session_manager::root_path(const std::string &path) {
     if ( !boost::filesystem::exists(path) ) {
         boost::system::error_code ec;
         boost::filesystem::create_directories(path, ec);
-        YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
+        __YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
     }
 
     pimpl->root_path = path;
@@ -653,11 +653,11 @@ std::shared_ptr<session>
 session_manager::create(const std::string &name, std::size_t volume_size, std::uint32_t opts, process_buffer proc) {
     guard_t lock(pimpl->mutex);
 
-    YAL_THROW_IF(!name.empty() && name[0] == '/', "session name can't be a full path");
+    __YAL_THROW_IF(!name.empty() && name[0] == '/', "session name can't be a full path");
 
     pimpl->iterate(
         [&name](yal::session s) {
-            YAL_THROW_IF(s->name() == name, "session \""+name+"\" already exists");
+            __YAL_THROW_IF(s->name() == name, "session \""+name+"\" already exists");
         }
     );
 
@@ -668,7 +668,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::u
         if ( !boost::filesystem::exists(path) ) {
             boost::system::error_code ec;
             boost::filesystem::create_directories(path, ec);
-            YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
+            __YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
         }
     }
 
