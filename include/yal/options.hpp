@@ -35,15 +35,15 @@
 namespace yal {
 
 enum options {
-	 sec_res             = 1u<<0  // seconds date-time resolution (by default)
-	,usec_res            = 1u<<1  // microseconds date-time resolution
-	,nsec_res            = 1u<<2  // nanoseconds date-time resolution
-	,remove_empty_logs   = 1u<<3  // remove empty volumes if exists
-	,fsync_each_record   = 1u<<4  // fdatasync's each record
-	,compress            = 1u<<5  // compress volumes
+     sec_res             = 1u<<0  // seconds date-time resolution (by default)
+    ,usec_res            = 1u<<1  // microseconds date-time resolution
+    ,nsec_res            = 1u<<2  // nanoseconds date-time resolution
+    ,remove_empty_logs   = 1u<<3  // remove empty volumes if exists
+    ,fsync_each_record   = 1u<<4  // fdatasync's each record
+    ,compress            = 1u<<5  // compress volumes
     ,full_source_name    = 1u<<6  // don't show full file path
-	,full_func_name      = 1u<<7  // i.e. 'void func(int)'
-	,create_index_file   = 1u<<8  // create index-file for each log file
+    ,full_func_name      = 1u<<7  // i.e. 'void func(int)'
+    ,create_index_file   = 1u<<8  // create index-file for each log file
 };
 
 } // ns yal
