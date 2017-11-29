@@ -52,11 +52,11 @@
 /***************************************************************************/
 
 #ifndef YAL_MAX_VOLUME_NUMBER
-#	define YAL_MAX_VOLUME_NUMBER 99999
+#   define YAL_MAX_VOLUME_NUMBER 99999
 #endif // YAL_MAX_VOLUME_NUMBER
 
 #ifndef YAL_COMPRESSION_LEVEL
-#	define YAL_COMPRESSION_LEVEL 1
+#   define YAL_COMPRESSION_LEVEL 1
 #endif // YAL_COMPRESSION_LEVEL
 
 /***************************************************************************/
@@ -256,59 +256,59 @@ private:
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_LOGGING
-#	define YAL_EXPAND_EXPR(...) \
+#   define YAL_EXPAND_EXPR(...) \
         __VA_ARGS__
-#	define YAL_SET_ROOT_PATH(path) \
+#   define YAL_SET_ROOT_PATH(path) \
         ::yal::logger::root_path(path)
 
-#	define YAL_GET_ROOT_PATH() \
+#   define YAL_GET_ROOT_PATH() \
         ::yal::logger::root_path()
-#	define YAL_GET_ROOT_PATH2(var) \
+#   define YAL_GET_ROOT_PATH2(var) \
         const std::string &var = YAL_GET_ROOT_PATH()
-#	define YAL_GET_ROOT_PATH3(var) \
+#   define YAL_GET_ROOT_PATH3(var) \
         var = YAL_GET_ROOT_PATH()
 
-#	define YAL_FLUSH() \
+#   define YAL_FLUSH() \
         ::yal::logger::flush()
 
-#	define YAL_SESSION_DECLARE_VAR(var) \
+#   define YAL_SESSION_DECLARE_VAR(var) \
         ::yal::session var
 
-#	define YAL_SESSION_INIT_VAR(l, r) \
+#   define YAL_SESSION_INIT_VAR(l, r) \
         :l(r)
-#	define YAL_SESSION_INIT_VAR2(l, r) \
+#   define YAL_SESSION_INIT_VAR2(l, r) \
         ,l(r)
 
-#	define YAL_SESSION_CREATE(var, ...) \
+#   define YAL_SESSION_CREATE(var, ...) \
         YAL_SESSION_DECLARE_VAR(var) = ::yal::logger::create(__VA_ARGS__)
-#	define YAL_SESSION_CREATE2(var, ...) \
+#   define YAL_SESSION_CREATE2(var, ...) \
         var = ::yal::logger::create(__VA_ARGS__)
-#	define YAL_SESSION_CREATE3(var, ...) \
+#   define YAL_SESSION_CREATE3(var, ...) \
         :var(::yal::logger::create(__VA_ARGS__))
-#	define YAL_SESSION_CREATE4(var, ...) \
+#   define YAL_SESSION_CREATE4(var, ...) \
         ,var(::yal::logger::create(__VA_ARGS__))
 
-#	define YAL_SESSION_GET(name) \
+#   define YAL_SESSION_GET(name) \
         ::yal::logger::get(name)
-#	define YAL_SESSION_GET2(var, name) \
+#   define YAL_SESSION_GET2(var, name) \
         YAL_SESSION_DECLARE_VAR(var) = YAL_SESSION_GET(name)
 
-#	define YAL_SESSION_EXISTS(name) \
+#   define YAL_SESSION_EXISTS(name) \
         (::yal::logger::get(name).get() != 0)
 
-#	define YAL_SESSION_FLUSH(log) \
+#   define YAL_SESSION_FLUSH(log) \
         log->flush()
 
-#	define YAL_SESSION_SET_LEVEL(log, lvl) \
+#   define YAL_SESSION_SET_LEVEL(log, lvl) \
         log->set_level((lvl))
-#	define YAL_SESSION_SET_BUFFER(log, size) \
+#   define YAL_SESSION_SET_BUFFER(log, size) \
         log->set_buffer((size))
-#	define YAL_SESSION_SET_UNBUFFERED(log) \
+#   define YAL_SESSION_SET_UNBUFFERED(log) \
         log->set_buffer(0)
-#	define YAL_SESSION_TO_TERM(log, flag, pref) \
+#   define YAL_SESSION_TO_TERM(log, flag, pref) \
         log->to_term((flag), (pref))
 
-#	define __YAL_LOG_IMPL(log, errlvl, ...) \
+#   define __YAL_LOG_IMPL(log, errlvl, ...) \
         do { \
             if ( log->get_level() >= ::yal::level::errlvl ) { \
                 static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
@@ -323,8 +323,8 @@ private:
                     ,::yal::level::errlvl \
                 ); \
             } \
-        } while(0)
-#	define __YAL_GLOBAL_LOG_IMPL(errlvl, ...) \
+        } while(false)
+#   define __YAL_GLOBAL_LOG_IMPL(errlvl, ...) \
         do { \
             static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
             ::yal::logger::write( \
@@ -337,136 +337,136 @@ private:
                 ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
                 ,::yal::level::errlvl \
             ); \
-        } while(0)
+        } while(false)
 
-#	ifndef YAL_DISABLE_LOG_ERROR
-#		define YAL_LOG_ERROR(log, ...) __YAL_LOG_IMPL(log, error, __VA_ARGS__)
-#		define YAL_LOG_ERROR_IF(log, cond, ...) if ( (cond) ) YAL_LOG_ERROR(log, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_ERROR(...) __YAL_GLOBAL_LOG_IMPL(error, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_ERROR(__VA_ARGS__)
-#	else // YAL_DISABLE_LOG_ERROR
-#		define YAL_LOG_ERROR(log, ...) do {} while(0)
-#		define YAL_LOG_ERROR_IF(log, cond, ...) do {} while(0)
-#		define YAL_GLOBAL_LOG_ERROR(...) do {} while(0)
-#		define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) do {} while(0)
-#	endif // YAL_DISABLE_LOG_ERROR
+#   ifndef YAL_DISABLE_LOG_ERROR
+#       define YAL_LOG_ERROR(log, ...) __YAL_LOG_IMPL(log, error, __VA_ARGS__)
+#       define YAL_LOG_ERROR_IF(log, cond, ...) if ( (cond) ) YAL_LOG_ERROR(log, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_ERROR(...) __YAL_GLOBAL_LOG_IMPL(error, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_ERROR(__VA_ARGS__)
+#   else // YAL_DISABLE_LOG_ERROR
+#       define YAL_LOG_ERROR(log, ...) do {} while(false)
+#       define YAL_LOG_ERROR_IF(log, cond, ...) do {} while(false)
+#       define YAL_GLOBAL_LOG_ERROR(...) do {} while(false)
+#       define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) do {} while(false)
+#   endif // YAL_DISABLE_LOG_ERROR
 
-#	ifndef YAL_DISABLE_LOG_WARNING
-#		define YAL_LOG_WARNING(log, ...) __YAL_LOG_IMPL(log, warning, __VA_ARGS__)
-#		define YAL_LOG_WARNING_IF(log, cond, ...) if ( (cond) ) YAL_LOG_WARNING(log, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_WARNING(...) __YAL_GLOBAL_LOG_IMPL(warning, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_WARNING(__VA_ARGS__)
-#	else // YAL_DISABLE_LOG_WARNING
-#		define YAL_LOG_WARNING(log, ...) do {} while(0)
-#		define YAL_LOG_WARNING_IF(log, cond, ...) do {} while(0)
-#		define YAL_GLOBAL_LOG_WARNING(...) do {} while(0)
-#		define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) do {} while(0)
-#	endif // YAL_DISABLE_LOG_WARNING
+#   ifndef YAL_DISABLE_LOG_WARNING
+#       define YAL_LOG_WARNING(log, ...) __YAL_LOG_IMPL(log, warning, __VA_ARGS__)
+#       define YAL_LOG_WARNING_IF(log, cond, ...) if ( (cond) ) YAL_LOG_WARNING(log, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_WARNING(...) __YAL_GLOBAL_LOG_IMPL(warning, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_WARNING(__VA_ARGS__)
+#   else // YAL_DISABLE_LOG_WARNING
+#       define YAL_LOG_WARNING(log, ...) do {} while(false)
+#       define YAL_LOG_WARNING_IF(log, cond, ...) do {} while(false)
+#       define YAL_GLOBAL_LOG_WARNING(...) do {} while(false)
+#       define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) do {} while(false)
+#   endif // YAL_DISABLE_LOG_WARNING
 
-#	ifndef YAL_DISABLE_LOG_DEBUG
-#		define YAL_LOG_DEBUG(log, ...) __YAL_LOG_IMPL(log, debug, __VA_ARGS__)
-#		define YAL_LOG_DEBUG_IF(log, cond, ...) if ( (cond) ) YAL_LOG_DEBUG(log, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_DEBUG(...) __YAL_GLOBAL_LOG_IMPL(debug, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_DEBUG(__VA_ARGS__)
-#	else // YAL_DISABLE_LOG_DEBUG
-#		define YAL_LOG_DEBUG(log, ...) do {} while(0)
-#		define YAL_LOG_DEBUG_IF(log, cond, ...) do {} while(0)
-#		define YAL_GLOBAL_LOG_DEBUG(...) do {} while(0)
-#		define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) do {} while(0)
-#	endif // YAL_DISABLE_LOG_DEBUG
+#   ifndef YAL_DISABLE_LOG_DEBUG
+#       define YAL_LOG_DEBUG(log, ...) __YAL_LOG_IMPL(log, debug, __VA_ARGS__)
+#       define YAL_LOG_DEBUG_IF(log, cond, ...) if ( (cond) ) YAL_LOG_DEBUG(log, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_DEBUG(...) __YAL_GLOBAL_LOG_IMPL(debug, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_DEBUG(__VA_ARGS__)
+#   else // YAL_DISABLE_LOG_DEBUG
+#       define YAL_LOG_DEBUG(log, ...) do {} while(false)
+#       define YAL_LOG_DEBUG_IF(log, cond, ...) do {} while(false)
+#       define YAL_GLOBAL_LOG_DEBUG(...) do {} while(false)
+#       define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) do {} while(false)
+#   endif // YAL_DISABLE_LOG_DEBUG
 
-#	ifndef YAL_DISABLE_LOG_INFO
-#		define YAL_LOG_INFO(log, ...) __YAL_LOG_IMPL(log, info, __VA_ARGS__)
-#		define YAL_LOG_INFO_IF(log, cond, ...) if ( (cond) ) YAL_LOG_INFO(log, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_INFO(...) __YAL_GLOBAL_LOG_IMPL(info, __VA_ARGS__)
-#		define YAL_GLOBAL_LOG_INFO_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_INFO(__VA_ARGS__)
-#	else // YAL_DISABLE_LOG_INFO
-#		define YAL_LOG_INFO(log, ...) do {} while(0)
-#		define YAL_LOG_INFO_IF(log, cond, ...) do {} while(0)
-#		define YAL_GLOBAL_LOG_INFO(...) do {} while(0)
-#		define YAL_GLOBAL_LOG_INFO_IF(cond, ...) do {} while(0)
-#	endif // YAL_DISABLE_LOG_INFO
+#   ifndef YAL_DISABLE_LOG_INFO
+#       define YAL_LOG_INFO(log, ...) __YAL_LOG_IMPL(log, info, __VA_ARGS__)
+#       define YAL_LOG_INFO_IF(log, cond, ...) if ( (cond) ) YAL_LOG_INFO(log, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_INFO(...) __YAL_GLOBAL_LOG_IMPL(info, __VA_ARGS__)
+#       define YAL_GLOBAL_LOG_INFO_IF(cond, ...) if ( (cond) ) YAL_GLOBAL_LOG_INFO(__VA_ARGS__)
+#   else // YAL_DISABLE_LOG_INFO
+#       define YAL_LOG_INFO(log, ...) do {} while(false)
+#       define YAL_LOG_INFO_IF(log, cond, ...) do {} while(false)
+#       define YAL_GLOBAL_LOG_INFO(...) do {} while(false)
+#       define YAL_GLOBAL_LOG_INFO_IF(cond, ...) do {} while(false)
+#   endif // YAL_DISABLE_LOG_INFO
 #else // YAL_DISABLE_LOGGING == true
-#	define YAL_EXPAND_EXPR(...)
-#	define YAL_SET_ROOT_PATH(path)
-#	define YAL_GET_ROOT_PATH(var)
-#	define YAL_GET_ROOT_PATH2(var)
-#	define YAL_GET_ROOT_PATH3(var)
+#   define YAL_EXPAND_EXPR(...)
+#   define YAL_SET_ROOT_PATH(path)
+#   define YAL_GET_ROOT_PATH(var)
+#   define YAL_GET_ROOT_PATH2(var)
+#   define YAL_GET_ROOT_PATH3(var)
 
-#	define YAL_FLUSH()
+#   define YAL_FLUSH()
 
-#	define YAL_SESSION_DECLARE_VAR(var)
+#   define YAL_SESSION_DECLARE_VAR(var)
 
-#	define YAL_SESSION_INIT_VAR(l, r)
-#	define YAL_SESSION_INIT_VAR2(l, r)
+#   define YAL_SESSION_INIT_VAR(l, r)
+#   define YAL_SESSION_INIT_VAR2(l, r)
 
-#	define YAL_SESSION_CREATE(var, ...)
-#	define YAL_SESSION_CREATE2(var, ...)
-#	define YAL_SESSION_CREATE3(var, ...)
-#	define YAL_SESSION_CREATE4(var, ...)
+#   define YAL_SESSION_CREATE(var, ...)
+#   define YAL_SESSION_CREATE2(var, ...)
+#   define YAL_SESSION_CREATE3(var, ...)
+#   define YAL_SESSION_CREATE4(var, ...)
 
-#	define YAL_SESSION_GET(name)
-#	define YAL_SESSION_GET2(var, name)
+#   define YAL_SESSION_GET(name)
+#   define YAL_SESSION_GET2(var, name)
 
-#	define YAL_SESSION_EXISTS(name)
+#   define YAL_SESSION_EXISTS(name)
 
-#	define YAL_SESSION_FLUSH(log)
+#   define YAL_SESSION_FLUSH(log)
 
-#	define YAL_SESSION_SET_LEVEL(log, lvl)
-#	define YAL_SESSION_SET_BUFFER(log, size)
-#	define YAL_SESSION_SET_UNBUFFERED(log)
-#	define YAL_SESSION_TO_TERM(log, flag, pref)
+#   define YAL_SESSION_SET_LEVEL(log, lvl)
+#   define YAL_SESSION_SET_BUFFER(log, size)
+#   define YAL_SESSION_SET_UNBUFFERED(log)
+#   define YAL_SESSION_TO_TERM(log, flag, pref)
 
-#	define YAL_LOG_ERROR(log, ...) do {} while(0)
-#	define YAL_LOG_ERROR_IF(log, cond, ...) do {} while(0)
-#	define YAL_GLOBAL_LOG_ERROR(...) do {} while(0)
-#	define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) do {} while(0)
-#	define YAL_LOG_WARNING(log, ...) do {} while(0)
-#	define YAL_LOG_WARNING_IF(log, cond, ...) do {} while(0)
-#	define YAL_GLOBAL_LOG_WARNING(...) do {} while(0)
-#	define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) do {} while(0)
-#	define YAL_LOG_DEBUG(log, ...) do {} while(0)
-#	define YAL_LOG_DEBUG_IF(log, cond, ...) do {} while(0)
-#	define YAL_GLOBAL_LOG_DEBUG(...) do {} while(0)
-#	define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) do {} while(0)
-#	define YAL_LOG_INFO(log, ...) do {} while(0)
-#	define YAL_LOG_INFO_IF(log, cond, ...) do {} while(0)
-#	define YAL_GLOBAL_LOG_INFO(...) do {} while(0)
-#	define YAL_GLOBAL_LOG_INFO_IF(cond, ...) do {} while(0)
+#   define YAL_LOG_ERROR(log, ...) do {} while(false)
+#   define YAL_LOG_ERROR_IF(log, cond, ...) do {} while(false)
+#   define YAL_GLOBAL_LOG_ERROR(...) do {} while(false)
+#   define YAL_GLOBAL_LOG_ERROR_IF(cond, ...) do {} while(false)
+#   define YAL_LOG_WARNING(log, ...) do {} while(false)
+#   define YAL_LOG_WARNING_IF(log, cond, ...) do {} while(false)
+#   define YAL_GLOBAL_LOG_WARNING(...) do {} while(false)
+#   define YAL_GLOBAL_LOG_WARNING_IF(cond, ...) do {} while(false)
+#   define YAL_LOG_DEBUG(log, ...) do {} while(false)
+#   define YAL_LOG_DEBUG_IF(log, cond, ...) do {} while(false)
+#   define YAL_GLOBAL_LOG_DEBUG(...) do {} while(false)
+#   define YAL_GLOBAL_LOG_DEBUG_IF(cond, ...) do {} while(false)
+#   define YAL_LOG_INFO(log, ...) do {} while(false)
+#   define YAL_LOG_INFO_IF(log, cond, ...) do {} while(false)
+#   define YAL_GLOBAL_LOG_INFO(...) do {} while(false)
+#   define YAL_GLOBAL_LOG_INFO_IF(cond, ...) do {} while(false)
 #endif // YAL_DISABLE_LOGGING
 
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_TESTS
-#	define YAL_TEST_COND(log, l, cmp, r) \
-        do { if ( !((l) cmp (r)) ) YAL_LOG_ERROR(log, "test_condition \"" #l " " #cmp " " #r "\" is false"); } while(0)
-#	define YAL_TEST_LESS(log, l, r) YAL_TEST_COND(log, l, <, r)
-#	define YAL_TEST_LESSEQ(log, l, r) YAL_TEST_COND(log, l, <=, r)
-#	define YAL_TEST_EQ(log, l, r) YAL_TEST_COND(log, l, ==, r)
-#	define YAL_TEST_NEQ(log, l, r) YAL_TEST_COND(log, l, !=, r)
-#	define YAL_TEST_GR(log, l, r) YAL_TEST_COND(log, l, >, r)
-#	define YAL_TEST_GREQ(log, l, r) YAL_TEST_COND(log, l, >=, r)
-#	define YAL_TEST_ZERO(log, v) YAL_TEST_COND(log, v, ==, 0)
-#	define YAL_TEST_NOTZERO(log, v) YAL_TEST_COND(log, v, !=, 0)
-#	define YAL_TEST_NULL(log, v) YAL_TEST_COND(log, v, ==, nullptr)
-#	define YAL_TEST_NOTNULL(log, v) YAL_TEST_COND(log, v, !=, nullptr)
+#   define YAL_TEST_COND(log, l, cmp, r) \
+        do { if ( !((l) cmp (r)) ) YAL_LOG_ERROR(log, "test_condition \"" #l " " #cmp " " #r "\" is false"); } while(false)
+#   define YAL_TEST_LESS(log, l, r) YAL_TEST_COND(log, l, <, r)
+#   define YAL_TEST_LESSEQ(log, l, r) YAL_TEST_COND(log, l, <=, r)
+#   define YAL_TEST_EQ(log, l, r) YAL_TEST_COND(log, l, ==, r)
+#   define YAL_TEST_NEQ(log, l, r) YAL_TEST_COND(log, l, !=, r)
+#   define YAL_TEST_GR(log, l, r) YAL_TEST_COND(log, l, >, r)
+#   define YAL_TEST_GREQ(log, l, r) YAL_TEST_COND(log, l, >=, r)
+#   define YAL_TEST_ZERO(log, v) YAL_TEST_COND(log, v, ==, 0)
+#   define YAL_TEST_NOTZERO(log, v) YAL_TEST_COND(log, v, !=, 0)
+#   define YAL_TEST_NULL(log, v) YAL_TEST_COND(log, v, ==, nullptr)
+#   define YAL_TEST_NOTNULL(log, v) YAL_TEST_COND(log, v, !=, nullptr)
 #else // !YAL_DISABLE_TESTS
-#	define YAL_TEST_LESS(log, l, r) do {} while(0)
-#	define YAL_TEST_LESSEQ(log, l, r) do {} while(0)
-#	define YAL_TEST_EQ(log, l, r) do {} while(0)
-#	define YAL_TEST_NEQ(log, l, r) do {} while(0)
-#	define YAL_TEST_GR(log, l, r) do {} while(0)
-#	define YAL_TEST_GREQ(log, l, r) do {} while(0)
-#	define YAL_TEST_ZERO(log, v) do {} while(0)
-#	define YAL_TEST_NOTZERO(log, v) do {} while(0)
-#	define YAL_TEST_NULL(log, v) do {} while(0)
-#	define YAL_TEST_NOTNULL(log, v) do {} while(0)
+#   define YAL_TEST_LESS(log, l, r) do {} while(false)
+#   define YAL_TEST_LESSEQ(log, l, r) do {} while(false)
+#   define YAL_TEST_EQ(log, l, r) do {} while(false)
+#   define YAL_TEST_NEQ(log, l, r) do {} while(false)
+#   define YAL_TEST_GR(log, l, r) do {} while(false)
+#   define YAL_TEST_GREQ(log, l, r) do {} while(false)
+#   define YAL_TEST_ZERO(log, v) do {} while(false)
+#   define YAL_TEST_NOTZERO(log, v) do {} while(false)
+#   define YAL_TEST_NULL(log, v) do {} while(false)
+#   define YAL_TEST_NOTNULL(log, v) do {} while(false)
 #endif // YAL_DISABLE_TESTS
 
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_ASSERT
-#	define YAL_ASSERT_LOG(log, ...) \
+#   define YAL_ASSERT_LOG(log, ...) \
         if ( !(__VA_ARGS__) ) { \
             static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
             log->write( \
@@ -483,7 +483,7 @@ private:
             std::abort(); \
         }
 
-#	define YAL_ASSERT_TERM(stream, ...) \
+#   define YAL_ASSERT_TERM(stream, ...) \
         if ( !(__VA_ARGS__) ) { \
             char dtbuf[::yal::usec_res_len+1] = "\0"; \
             stream \
@@ -494,8 +494,8 @@ private:
         }
 
 #else // !YAL_DISABLE_ASSERT
-#	define YAL_ASSERT_LOG(log, ...) do {} while(0)
-#	define YAL_ASSERT_TERM(stream, ...) do {} while(0)
+#   define YAL_ASSERT_LOG(log, ...) do {} while(false)
+#   define YAL_ASSERT_TERM(stream, ...) do {} while(false)
 #endif // YAL_DISABLE_ASSERT
 
 /***************************************************************************/
@@ -515,9 +515,9 @@ struct timepoint {
 } // ns detail
 } // ns yal
 
-#	define YAL_MAKE_TIMEPOINT(name, descr) \
+#   define YAL_MAKE_TIMEPOINT(name, descr) \
         const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
-#	define YAL_PRINT_TIMEPOINT(log, name) \
+#   define YAL_PRINT_TIMEPOINT(log, name) \
         do { \
             static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
             const auto d = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
@@ -540,30 +540,30 @@ struct timepoint {
                 ) \
                 ,::yal::level::info \
             ); \
-        } while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
+        } while(false)
+#   define YAL_PRINT_TIMEPOINT_IF(log, expr, name) \
         if ( (expr) ) YAL_PRINT_TIMEPOINT(log, name) \
 
 #else // !YAL_DISABLE_TIMEPOINT
-#	define YAL_MAKE_TIMEPOINT(name, descr) do {} while(0)
-#	define YAL_PRINT_TIMEPOINT(log, name) do {} while(0)
-#	define YAL_PRINT_TIMEPOINT_IF(log, expr, name) do {} while(0)
+#   define YAL_MAKE_TIMEPOINT(name, descr) do {} while(false)
+#   define YAL_PRINT_TIMEPOINT(log, name) do {} while(false)
+#   define YAL_PRINT_TIMEPOINT_IF(log, expr, name) do {} while(false)
 #endif // YAL_DISABLE_TIMEPOINT
 
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_TRY_CATCH
-#	define YAL_TRY(flag) \
+#   define YAL_TRY(flag) \
         bool flag = false; \
         ((void)flag); \
         static const auto _yal_try_##flag##_line = __LINE__; \
         try
-#	define YAL_TYPED_CATCH(log, extype, flag, msg) \
+#   define YAL_TYPED_CATCH(log, extype, flag, msg) \
         catch (const extype &ex) { \
             flag = true; \
             YAL_LOG_ERROR(log, "[" #extype "](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag##_line, __LINE__, ex.what(), msg); \
         }
-#	define YAL_CATCH(log, flag, msg) \
+#   define YAL_CATCH(log, flag, msg) \
         YAL_TYPED_CATCH(log, std::exception, flag, msg) \
         catch (...) { \
             flag = true; \
@@ -572,7 +572,7 @@ struct timepoint {
 #else
 #   define YAL_TRY(flag) \
         try
-#	define YAL_TYPED_CATCH(log, extype, flag, msg) \
+#   define YAL_TYPED_CATCH(log, extype, flag, msg) \
     catch (const extype &ex) { \
         throw ex; \
     }
