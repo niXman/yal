@@ -52,24 +52,24 @@ std::size_t itoa(char *buf, long long v) {
 
 	char *p = buf+len-1;
 	switch ( len ) {
-		case 19: *p-- = '0' + (v % 10); v /= 10;
-		case 18: *p-- = '0' + (v % 10); v /= 10;
-		case 17: *p-- = '0' + (v % 10); v /= 10;
-		case 16: *p-- = '0' + (v % 10); v /= 10;
-		case 15: *p-- = '0' + (v % 10); v /= 10;
-		case 14: *p-- = '0' + (v % 10); v /= 10;
-		case 13: *p-- = '0' + (v % 10); v /= 10;
-		case 12: *p-- = '0' + (v % 10); v /= 10;
-		case 11: *p-- = '0' + (v % 10); v /= 10;
-		case 10: *p-- = '0' + (v % 10); v /= 10;
-		case 9 : *p-- = '0' + (v % 10); v /= 10;
-		case 8 : *p-- = '0' + (v % 10); v /= 10;
-		case 7 : *p-- = '0' + (v % 10); v /= 10;
-		case 6 : *p-- = '0' + (v % 10); v /= 10;
-		case 5 : *p-- = '0' + (v % 10); v /= 10;
-		case 4 : *p-- = '0' + (v % 10); v /= 10;
-		case 3 : *p-- = '0' + (v % 10); v /= 10;
-		case 2 : *p-- = '0' + (v % 10); v /= 10;
+		case 19: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 18: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 17: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 16: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 15: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 14: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 13: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 12: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 11: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 10: *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 9 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 8 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 7 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 6 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 5 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 4 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 3 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
+		case 2 : *p-- = '0' + (v % 10); v /= 10; // fallthrough
 		case 1 : *p-- = '0' + (v % 10); v /= 10;
 	}
 
