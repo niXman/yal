@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2017 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2018 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.

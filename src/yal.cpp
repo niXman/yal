@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2017 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2018 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -57,6 +57,10 @@
 
 /***************************************************************************/
 
+namespace yal {
+
+/***************************************************************************/
+
 #ifndef YAL_THREAD_SAFE
 #	define YAL_THREAD_SAFE (0)
 #endif // YAL_THREAD_SAFE
@@ -72,10 +76,6 @@ struct mutex_t {
 #endif // YAL_THREAD_SAFE
 
 using guard_t = std::lock_guard<mutex_t>;
-
-/***************************************************************************/
-
-namespace yal {
 
 /***************************************************************************/
 
@@ -621,7 +621,7 @@ struct session_manager::impl {
 session_manager::session_manager()
     :pimpl(new impl)
 {
-    // for setting the 'timezone' extern var
+    // hack for setting the 'timezone' extern var
     std::time_t t = time(0);
     std::tm *lt = localtime(&t);
     (void)lt;
@@ -688,7 +688,7 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::u
 /***************************************************************************/
 
 void session_manager::write(
-    const char *fileline
+     const char *fileline
     ,const std::size_t fileline_len
     ,const char *sfunc
     ,const std::size_t sfunc_len
@@ -701,8 +701,9 @@ void session_manager::write(
 
     pimpl->iterate(
         [fileline, fileline_len, sfunc, sfunc_len, func, func_len, &data, lvl](yal::session s) {
-            if ( s->get_level() >= lvl )
+            if ( s->get_level() >= lvl ) {
                 s->write(fileline, fileline_len, sfunc, sfunc_len, func, func_len, data, lvl);
+            }
         }
     );
 }
@@ -739,6 +740,7 @@ void session_manager::flush() {
 
 detail::session_manager* logger::instance() {
     static std::unique_ptr<detail::session_manager> object(new detail::session_manager);
+
     return object.get();
 }
 
