@@ -404,16 +404,15 @@ struct session::impl {
             ,const std::string &data
             ,const level lvl)
     {
-        const std::uint64_t dt = dtf::timestamp();
-        char dtbuf[dtf::bufsize];
         const auto dtres = (options & sec_res) ? dtf::flags::secs
             : (options & msec_res) ? dtf::flags::msecs
                 : (options & usec_res) ? dtf::flags::usecs
                     : dtf::flags::nsecs
         ;
         const auto dtflags = dtf::flags::yyyy_mm_dd|dtf::flags::sep3|dtres;
+        char dtbuf[dtf::bufsize];
+        const std::uint64_t dt = dtf::timestamp();
         const std::size_t dtlen = dtf::timestamp_to_chars(dtbuf, dt, dtflags);
-        dtbuf[dtlen] = 0;
 
         if ( !(options & full_source_name) ) {
             const char *p = std::strrchr(fileline, '/');
