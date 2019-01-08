@@ -350,9 +350,8 @@ struct session::impl {
     }
 
     void create_volume() {
-        char fmt[64] = "\0";
-        char datebuf[64] = "\0";
-        char pathbuf[1024*4] = "\0";
+        char fmt[64];
+        char pathbuf[1024*4];
 
         if ( volume_number > shift_after ) {
             shift_after = shift_after * 10 + 9;
@@ -361,8 +360,10 @@ struct session::impl {
         const int digits = static_cast<int>(std::log10(shift_after)+1);
         std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
-        sec_datetime_str(datebuf, sizeof(datebuf));
-        datebuf[sec_res_len] = 0;
+        char datebuf[dtf::bufsize];
+        auto flags = dtf::flags::yyyy_mm_dd|dtf::flags::secs|dtf::flags::sep2;
+        auto n = dtf::timestamp_to_chars(datebuf, dtf::timestamp(), flags);
+        datebuf[n] = 0;
         std::snprintf(
              pathbuf
             ,sizeof(pathbuf)
@@ -403,14 +404,16 @@ struct session::impl {
             ,const std::string &data
             ,const level lvl)
     {
-
-        const std::size_t dtlen = (
-            (options & usec_res)
-                ? usec_res_len
-                : (options & nsec_res)
-                    ? nsec_res_len
-                    : sec_res_len
-        ); // date-time string length
+        const std::uint64_t dt = dtf::timestamp();
+        char dtbuf[dtf::bufsize];
+        const auto dtres = (options & sec_res) ? dtf::flags::secs
+            : (options & msec_res) ? dtf::flags::msecs
+                : (options & usec_res) ? dtf::flags::usecs
+                    : dtf::flags::nsecs
+        ;
+        const auto dtflags = dtf::flags::yyyy_mm_dd|dtf::flags::sep3|dtres;
+        const std::size_t dtlen = dtf::timestamp_to_chars(dtbuf, dt, dtflags);
+        dtbuf[dtlen] = 0;
 
         if ( !(options & full_source_name) ) {
             const char *p = std::strrchr(fileline, '/');
@@ -444,9 +447,6 @@ struct session::impl {
         if ( reclen > recbuf.size() )
             recbuf.resize(reclen);
 
-        char dtbuf[32] = "\0";
-        std::memset(dtbuf, ' ', sizeof(dtbuf));
-        datetime_str(dtbuf, sizeof(dtbuf), options);
         const char lvlchr = level_chr(lvl);
 
         /*********************************************/
