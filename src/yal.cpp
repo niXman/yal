@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2018 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2019 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -116,7 +116,7 @@ int fdatasync(int fd) {
 
 /***************************************************************************/
 
-static const char *active_ext = ".active";
+static const char active_ext[] = ".active";
 
 struct io_base {
     virtual ~io_base() {}
@@ -248,26 +248,26 @@ struct session::impl {
         ,std::uint32_t opts
         ,process_buffer proc
     )
-        :path(path)
-        ,name(name)
-        ,volume_size(volume_size)
-        ,options(opts)
-        ,proc(std::move(proc))
-        ,shift_after(YAL_MAX_VOLUME_NUMBER)
-        ,logfile(create_io(opts))
-        ,idxfile(opts & create_index_file ? (create_io(opts)) : nullptr)
-        ,toterm(false)
-        ,prefix()
-        ,level(yal::info)
-        ,recbuf()
-        ,writen_bytes(0)
-        ,volume_number(0)
+        :m_path(path)
+        ,m_name(name)
+        ,m_volume_size(volume_size)
+        ,m_options(opts)
+        ,m_proc(std::move(proc))
+        ,m_shift_after(YAL_MAX_VOLUME_NUMBER)
+        ,m_logfile(create_io(opts))
+        ,m_idxfile(opts & create_index_file ? (create_io(opts)) : nullptr)
+        ,m_toterm(false)
+        ,m_prefix()
+        ,m_level(yal::info)
+        ,m_recbuf()
+        ,m_writen_bytes(0)
+        ,m_volume_number(0)
     {
-        if ( name != "disable" ) {
-            volume_number = get_last_volume_number(path, name, ((options & yal::remove_empty_logs)>0));
+        if ( m_name != "disable" ) {
+            m_volume_number = get_last_volume_number(m_path, m_name, ((m_options & yal::remove_empty_logs)>0));
             create_volume();
         } else {
-            level = yal::disable;
+            m_level = yal::disable;
         }
     }
     ~impl() {
@@ -275,7 +275,7 @@ struct session::impl {
     }
 
     static std::string final_log_fname(const std::string &fname) {
-        return fname.substr(0, fname.length()-std::strlen(active_ext));
+        return fname.substr(0, fname.length()-sizeof(active_ext)-1);
     }
     static std::size_t get_last_volume_number(const std::string &path, const std::string &name, bool remove_empty) {
         std::size_t volnum = 0;
@@ -350,48 +350,48 @@ struct session::impl {
     }
 
     void create_volume() {
-        char fmt[64] = "\0";
-        char datebuf[64] = "\0";
-        char pathbuf[1024*4] = "\0";
+        char fmt[64];
+        char pathbuf[1024*4];
 
-        if ( volume_number > shift_after ) {
-            shift_after = shift_after * 10 + 9;
+        if ( m_volume_number > m_shift_after ) {
+            m_shift_after = m_shift_after * 10 + 9;
         }
 
-        const int digits = static_cast<int>(std::log10(shift_after)+1);
+        const int digits = static_cast<int>(std::log10(m_shift_after)+1);
         std::snprintf(fmt, sizeof(fmt), "%s%d%s", "%s/%s-%0", digits, "d-%s");
 
-        sec_datetime_str(datebuf, sizeof(datebuf));
-        datebuf[sec_res_len] = 0;
+        char datebuf[dtf::bufsize];
+        const auto flags = dtf::flags::yyyy_mm_dd|dtf::flags::secs|dtf::flags::sep2;
+        const auto n = dtf::timestamp_to_chars(datebuf, dtf::timestamp(), flags);
+        datebuf[n] = 0;
         std::snprintf(
              pathbuf
             ,sizeof(pathbuf)
             ,fmt
-            ,path.c_str()
-            ,name.c_str()
-            ,volume_number
+            ,m_path.c_str()
+            ,m_name.c_str()
+            ,m_volume_number
             ,datebuf
         );
 
-        const char *pos = std::strchr(name.c_str(), '.');
-        if ( pos ) {
+        if ( const char *pos = std::strchr(m_name.c_str(), '.') ) {
             std::strcat(pathbuf, pos);
         }
 
-        logfile->create(pathbuf);
+        m_logfile->create(pathbuf);
 
-        if ( options & create_index_file ) {
+        if ( m_options & create_index_file ) {
             std::strcat(pathbuf, ".idx");
-            idxfile->create(pathbuf);
+            m_idxfile->create(pathbuf);
         }
     }
 
     void flush() {
-        logfile->fsync();
-        if ( options & create_index_file )
-            idxfile->fsync();
+        m_logfile->fsync();
+        if ( m_options & create_index_file )
+            m_idxfile->fsync();
     }
-    void to_term(bool ok, const std::string &pref) { toterm = ok; prefix = pref; }
+    void to_term(bool ok, const std::string &pref) { m_toterm = ok; m_prefix = pref; }
 
     void write(
              const char *fileline
@@ -403,18 +403,18 @@ struct session::impl {
             ,const std::string &data
             ,const level lvl)
     {
+        const auto dtres = (m_options & sec_res) ? dtf::flags::secs
+            : (m_options & msec_res) ? dtf::flags::msecs
+                : (m_options & usec_res) ? dtf::flags::usecs
+                    : dtf::flags::nsecs
+        ;
+        const auto dtflags = dtf::flags::yyyy_mm_dd|dtf::flags::sep3|dtres;
+        char dtbuf[dtf::bufsize];
+        const auto dt = dtf::timestamp();
+        const auto dtlen = dtf::timestamp_to_chars(dtbuf, dt, dtflags);
 
-        const std::size_t dtlen = (
-            (options & usec_res)
-                ? usec_res_len
-                : (options & nsec_res)
-                    ? nsec_res_len
-                    : sec_res_len
-        ); // date-time string length
-
-        if ( !(options & full_source_name) ) {
-            const char *p = std::strrchr(fileline, '/');
-            if ( p ) {
+        if ( !(m_options & full_source_name) ) {
+            if ( const char *p = std::strrchr(fileline, '/') ) {
                 fileline = p+1;
                 fileline_len = std::strlen(fileline);
             }
@@ -422,7 +422,7 @@ struct session::impl {
 
         std::size_t lfunc_len = sfunc_len;
         const char *lfunc_name = sfunc;
-        if ( options & full_func_name ) {
+        if ( m_options & full_func_name ) {
             lfunc_len = func_len;
             lfunc_name = func;
         }
@@ -441,16 +441,13 @@ struct session::impl {
             +1 // '\n'
         ;
 
-        if ( reclen > recbuf.size() )
-            recbuf.resize(reclen);
+        if ( reclen > m_recbuf.size() )
+            m_recbuf.resize(reclen);
 
-        char dtbuf[32] = "\0";
-        std::memset(dtbuf, ' ', sizeof(dtbuf));
-        datetime_str(dtbuf, sizeof(dtbuf), options);
         const char lvlchr = level_chr(lvl);
 
         /*********************************************/
-        char *p = const_cast<char*>(recbuf.c_str());
+        char *p = const_cast<char*>(m_recbuf.c_str());
         *p++ = '[';
         std::memcpy(p, dtbuf, dtlen);
         p += dtlen;
@@ -474,18 +471,18 @@ struct session::impl {
         *p = 0;
         /*********************************************/
 
-        if ( toterm ) {
+        if ( m_toterm ) {
             FILE *term = ((lvl == yal::info || lvl == yal::debug) ? stdout : stderr);
-            if ( !prefix.empty() ) {
-                std::fprintf(term, "<%s>%s", prefix.c_str(), recbuf.c_str());
+            if ( !m_prefix.empty() ) {
+                std::fprintf(term, "<%s>%s", m_prefix.c_str(), m_recbuf.c_str());
             } else {
-                std::fprintf(term, "%s", recbuf.c_str());
+                std::fprintf(term, "%s", m_recbuf.c_str());
             }
             std::fflush(term);
         }
 
-        if ( options & create_index_file ) {
-            const std::uint32_t off = static_cast<std::uint32_t>(logfile->fpos());
+        if ( m_options & create_index_file ) {
+            const std::uint32_t off = static_cast<std::uint32_t>(m_logfile->fpos());
             const index_record record = {
                 off // start
                 ,1 // dt_off
@@ -500,45 +497,45 @@ struct session::impl {
                 ,static_cast<std::uint32_t>(data.size()+1/*for '\n' */) // data_len
             };
 
-            idxfile->write(&record, sizeof(record));
+            m_idxfile->write(&record, sizeof(record));
         }
 
-        if ( proc ) {
-            const auto proc_res = proc(recbuf.c_str(), reclen);
-            logfile->write(proc_res.first, proc_res.second);
+        if ( m_proc ) {
+            const auto proc_res = m_proc(m_recbuf.c_str(), reclen);
+            m_logfile->write(proc_res.first, proc_res.second);
         } else {
-            logfile->write(recbuf.c_str(), reclen);
+            m_logfile->write(m_recbuf.c_str(), reclen);
         }
 
-        if ( options & fsync_each_record ) {
-            logfile->fsync();
-            if ( options & create_index_file ) {
-                idxfile->fsync();
+        if ( m_options & fsync_each_record ) {
+            m_logfile->fsync();
+            if ( m_options & create_index_file ) {
+                m_idxfile->fsync();
             }
         }
 
-        writen_bytes += reclen;
-        if ( writen_bytes >= volume_size ) {
-            writen_bytes = 0;
-            volume_number += 1;
+        m_writen_bytes += reclen;
+        if ( m_writen_bytes >= m_volume_size ) {
+            m_writen_bytes = 0;
+            m_volume_number += 1;
             create_volume();
         }
     }
 
-    const std::string        path;
-    const std::string        name;
-    const std::size_t        volume_size;
-    const std::uint32_t      options;
-    const process_buffer     proc;
-    std::size_t              shift_after;
-    std::unique_ptr<io_base> logfile;
-    std::unique_ptr<io_base> idxfile;
-    bool                     toterm;
-    std::string              prefix;
-    yal::level               level;
-    std::string              recbuf;
-    std::size_t              writen_bytes;
-    std::size_t              volume_number;
+    const std::string        m_path;
+    const std::string        m_name;
+    const std::size_t        m_volume_size;
+    const std::uint32_t      m_options;
+    const process_buffer     m_proc;
+    std::size_t              m_shift_after;
+    std::unique_ptr<io_base> m_logfile;
+    std::unique_ptr<io_base> m_idxfile;
+    bool                     m_toterm;
+    std::string              m_prefix;
+    yal::level               m_level;
+    std::string              m_recbuf;
+    std::size_t              m_writen_bytes;
+    std::size_t              m_volume_number;
 };
 
 /***************************************************************************/
@@ -558,10 +555,10 @@ session::~session()
 
 /***************************************************************************/
 
-const std::string& session::name() const { return pimpl->name; }
+const std::string& session::name() const { return pimpl->m_name; }
 void session::to_term(const bool ok, const std::string &pref) { pimpl->to_term(ok, pref); }
-void session::set_level(const level lvl) { pimpl->level = lvl; }
-level session::get_level() const { return pimpl->level; }
+void session::set_level(const level lvl) { pimpl->m_level = lvl; }
+level session::get_level() const { return pimpl->m_level; }
 
 void session::write(
      const char *fileline

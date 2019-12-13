@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2018 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2019 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -35,15 +35,16 @@
 namespace yal {
 
 enum options {
-     sec_res             = 1u<<0  // seconds date-time resolution (by default)
-    ,usec_res            = 1u<<1  // microseconds date-time resolution
-    ,nsec_res            = 1u<<2  // nanoseconds date-time resolution
-    ,remove_empty_logs   = 1u<<3  // remove empty volumes if exists
-    ,fsync_each_record   = 1u<<4  // fdatasync's each record
-    ,compress            = 1u<<5  // compress volumes
-    ,full_source_name    = 1u<<6  // don't show full file path
-    ,full_func_name      = 1u<<7  // i.e. 'void func(int)'
-    ,create_index_file   = 1u<<8  // create index-file for each log file
+     sec_res             = 1u<<0u  // seconds resolution (by default)
+    ,msec_res            = 1u<<1u  // milliseconds resolution
+    ,usec_res            = 1u<<2u  // microseconds resolution
+    ,nsec_res            = 1u<<3u  // nanoseconds resolution
+    ,remove_empty_logs   = 1u<<4u  // remove empty volumes if exists
+    ,fsync_each_record   = 1u<<5u  // fdatasync's each record
+    ,compress            = 1u<<6u  // compress volumes
+    ,full_source_name    = 1u<<7u  // don't show full file path
+    ,full_func_name      = 1u<<8u  // i.e. 'void func(int)'
+    ,create_index_file   = 1u<<9u  // create index-file for each log file
 };
 
 } // ns yal

@@ -11,8 +11,13 @@ include_directories(
 )
 
 set(SOURCE_FILES
+    ../../include/yal/dtf.hpp
+    ../../include/yal/index.hpp
+    ../../include/yal/options.hpp
+    ../../include/yal/throw.hpp
+    ../../include/yal/yal.hpp
+    #
     main.cpp
-    ../../src/datetime.cpp
     ../../src/index.cpp
     ../../src/yal.cpp
 )

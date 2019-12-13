@@ -1,8 +1,8 @@
 
-// Copyright (c) 2013-2018 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2019 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
-// This file is part of YAL(https://github.com/niXman/yal) project.
+// This file is part of DTF(https://github.com/niXman/dtf) project.
 //
 // Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met:
@@ -29,47 +29,47 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _yal__datetime_hpp
-#define _yal__datetime_hpp
-
-#include <yal/options.hpp>
+#ifndef __dtf__dtf_hpp
+#define __dtf__dtf_hpp
 
 #include <cstdint>
 
-/***************************************************************************/
+namespace dtf {
 
-#define YAL_DATE_FORMAT_DMY (0) // day.month.year
-#define YAL_DATE_FORMAT_YMD (1) // year.month.day
-#define YAL_DATE_FORMAT_MDY (2) // month.day.year
+/*************************************************************************************************/
 
-#ifndef YAL_DATE_FORMAT
-#	define YAL_DATE_FORMAT YAL_DATE_FORMAT_YMD
-#endif // YAL_DATE_FORMAT
+// always in nanoseconds resolution
+std::uint64_t timestamp(int offset = 0 /*in hours*/);
 
-#if !(YAL_DATE_FORMAT == YAL_DATE_FORMAT_DMY || \
-        YAL_DATE_FORMAT == YAL_DATE_FORMAT_YMD || \
-        YAL_DATE_FORMAT == YAL_DATE_FORMAT_MDY)
-#error "bad YAL_DATE_FORMAT"
-#endif
-
-/***************************************************************************/
-
-namespace yal {
-
-// constants
-enum {
-	 sec_res_len  = 19
-	,usec_res_len = 26
-	,nsec_res_len = 29
+struct flags {
+    enum: std::size_t {
+         yyyy_mm_dd = 1u << 0u
+        ,dd_mm_yyyy = 1u << 1u
+        ,sep1       = 1u << 2u // 2018-12-11 13:58:56
+        ,sep2       = 1u << 3u // 2018.12.11-13.58.59
+        ,sep3       = 1u << 4u // 2018.12.11-13:58:59
+        ,secs       = 1u << 5u // seconds resolution
+        ,msecs      = 1u << 6u // milliseconds resolution
+        ,usecs      = 1u << 7u // microseconds resolution
+        ,nsecs      = 1u << 8u // nanoseconds resolution
+    };
 };
 
-const char* datetime_str(char *buf, const std::size_t buf_size, std::uint32_t opts);
-const char* sec_datetime_str(char *buf, const std::size_t buf_size);
-const char* usec_datetime_str(char *buf, const std::size_t buf_size);
-const char* nsec_datetime_str(char *buf, const std::size_t buf_size);
+enum { bufsize = 32 };
 
-} // ns yal
+// returns the num of bytes placed
+std::size_t timestamp_to_chars(
+     char *ptr // dst buf with at least 'bufsize' bytes
+    ,std::uint64_t ts
+    ,std::size_t f = flags::yyyy_mm_dd|flags::sep1|flags::msecs
+);
 
-/***************************************************************************/
+/*************************************************************************************************/
 
-#endif // _yal__datetime_hpp
+} // ns dtf
+
+#ifdef DTF_HEADER_ONLY
+#   include "dtf.cpp"
+#endif // DTF_HEADER_ONLY
+
+#endif // __dtf__dtf_hpp
