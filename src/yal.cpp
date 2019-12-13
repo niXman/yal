@@ -621,10 +621,12 @@ struct session_manager::impl {
 session_manager::session_manager()
     :pimpl(new impl)
 {
+#ifndef YAL_DOESNT_USE_TIMEZONE
     // hack for setting the 'timezone' extern var
     std::time_t t = time(0);
     std::tm *lt = localtime(&t);
     (void)lt;
+#endif // YAL_DOESNT_USE_TIMEZONE
 }
 
 session_manager::~session_manager()

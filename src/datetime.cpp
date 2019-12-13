@@ -145,7 +145,9 @@ std::size_t datetime_str(char *buf, std::uint32_t res) {
 
     clock_gettime(CLOCK_REALTIME, &ts);
     std::tm tm = time_t_to_tm(ts.tv_sec);
+#ifndef YAL_DOESNT_USE_TIMEZONE
     tm.tm_hour += std::abs(timezone/(60*60)); // 'timezone' - is extern var
+#endif // YAL_DOESNT_USE_TIMEZONE
 
 #define YAL_YEAR(p, tm) \
     *p++ = ((tm.tm_year+1900)/1000)%10+'0'; \

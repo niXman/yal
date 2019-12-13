@@ -4,6 +4,8 @@ project(base)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
+#add_definitions(-DYAL_DOESNT_USE_TIMEZONE)
+
 include_directories(
     ../../include
 )
