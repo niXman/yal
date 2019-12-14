@@ -41,9 +41,67 @@
 #include <algorithm>
 #include <mutex>
 
-#include <boost/filesystem.hpp>
+/***************************************************************************/
 
+#if defined(_WIN32) || defined(_MSC_VER)
+
+bool exists(const char *fname);
+
+#else
+
+#include <dirent.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+bool exists(const char *fname) {
+    return ::access(fname, F_OK) == 0;
+}
+
+bool create_dir_tree(const char* dirname) {
+    char temp[1024] = "\0";
+    char* pname = &temp[0];
+    const char* end = std::strchr(dirname+1, '/');
+    while ( true ) {
+        std::strncpy(pname, dirname, end-dirname);
+        if ( 0 == ::access(pname, F_OK) ) {
+            if ( 0 == std::strcmp(pname, dirname) )
+                break;
+
+            end = std::strchr(end+1, '/');
+            if ( !end )
+                end = dirname + std::strlen(dirname);
+
+            continue;
+        }
+        if ( 0 != ::mkdir(pname, S_IRWXU|S_IRWXG|S_IRWXO) )
+            return false;
+
+        if ( 0 == std::strcmp(pname, dirname) )
+            break;
+
+        end = strchr(end+1, '/');
+        if ( !end )
+            end = dirname + std::strlen(dirname);
+    }
+
+    return true;
+}
+
+bool is_directory(const char *path) {
+    struct ::stat st{};
+    return ::stat(path, &st) == 0 && S_ISDIR(st.st_mode);
+}
+
+std::size_t file_size(const char *fname) {
+    struct ::stat st{};
+    ::stat(fname, &st);
+
+    return st.st_size;
+}
+
+#endif // WIN32
 
 /***************************************************************************/
 
@@ -157,8 +215,7 @@ struct file_io: io_base {
             ::close(fd);
             fd = -1;
 
-            boost::system::error_code ec;
-            boost::filesystem::rename(fname, normalize_fname(fname), ec);
+            ::rename(fname.c_str(), normalize_fname(fname).c_str());
         }
 
         off = 0;
@@ -206,8 +263,7 @@ struct gz_file_io: io_base {
             ::close(fd);
             fd = -1;
 
-            boost::system::error_code ec;
-            boost::filesystem::rename(fname, normalize_fname(fname), ec);
+            ::rename(fname.c_str(), normalize_fname(fname).c_str());
         }
     }
     void fsync() {
@@ -290,34 +346,41 @@ struct session::impl {
             logfname= name;
         }
 
-        boost::system::error_code ec;
+        struct dirent* dirent;
+        DIR *dir = ::opendir(logpath.c_str());
+        if ( !dir ) return 0;
         std::vector<std::string> empty_logs;
         std::vector<std::string> for_rename;
-        boost::filesystem::directory_iterator fs_beg(logpath), fs_end;
-        for ( ; fs_beg != fs_end; ++fs_beg ) {
-            const auto path     = fs_beg->path().string();
-            const auto filename = fs_beg->path().filename().string();
-
-            if ( boost::filesystem::is_directory(*fs_beg) )
+        while ( (dirent = readdir(dir)) != nullptr ) {
+            if ( (dirent->d_name[0] == '.' && dirent->d_name[1] == 0) ||
+                 (dirent->d_name[0] == '.' && dirent->d_name[1] == '.' && dirent->d_name[2] == 0)
+            )
                 continue;
 
-            if ( path.find(logfname+"-") == std::string::npos )
+            std::string fname = dirent->d_name;
+            std::string fpath = logpath;
+            fpath += "/";
+            fpath += fname;
+
+            if ( is_directory(fpath.c_str()) )
+                continue;
+
+            if ( fpath.find(logfname+"-") == std::string::npos )
                 continue;
 
             if ( remove_empty ) {
-                const auto filesize = boost::filesystem::file_size(*fs_beg, ec);
-                __YAL_THROW_IF(ec, "can't get filesize(" +path+ "): " + ec.message());
+                const auto filesize = file_size(fpath.c_str());
                 if ( filesize == 0 ) {
-                    empty_logs.push_back(path);
+                    empty_logs.push_back(fpath);
                     continue;
                 }
             }
 
-            if ( filename.find(active_ext) != std::string::npos )
+            if ( fname.find(active_ext) != std::string::npos )
                 for_rename.push_back(path);
 
-            auto beg = std::find(filename.begin(), filename.end(), '-');
-            if ( beg == filename.end() || beg+1 == filename.end() )
+            auto beg = std::find(fname.begin(), fname.end(), '-');
+            if ( beg == fname.end() || beg+1 == fname.end() )
                 continue;
 
             ++beg;
@@ -334,16 +397,14 @@ struct session::impl {
                 volnum = num;
         }
 
-        ec.clear();
         for ( const auto &it: empty_logs ) {
-            boost::filesystem::remove(it, ec);
-            __YAL_THROW_IF(ec, "can't remove empty volume(" +it+ "): " + ec.message());
+            int ec = ::remove(it.c_str());
+            __YAL_THROW_IF(ec, "can't remove empty volume");
         }
 
-        ec.clear();
         for ( const auto &it: for_rename ) {
-            boost::filesystem::rename(it, final_log_fname(it), ec);
-            __YAL_THROW_IF(ec, "can't rename unfinished volume(" +it+ "): " + ec.message());
+            int ec = ::rename(it.c_str(), final_log_fname(it).c_str());
+            __YAL_THROW_IF(ec, "can't rename unfinished volume");
         }
 
         return volnum;
@@ -640,10 +701,9 @@ const std::string& session_manager::root_path() const {
 void session_manager::root_path(const std::string &path) {
     guard_t lock(pimpl->mutex);
 
-    if ( !boost::filesystem::exists(path) ) {
-        boost::system::error_code ec;
-        boost::filesystem::create_directories(path, ec);
-        __YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
+    if ( !exists(path.c_str()) ) {
+        bool ok = create_dir_tree(path.c_str());
+        __YAL_THROW_IF(!ok, "can't create logs root directory");
     }
 
     pimpl->root_path = path;
@@ -665,10 +725,9 @@ session_manager::create(const std::string &name, std::size_t volume_size, std::u
     if ( pos != std::string::npos ) {
         const std::string path = pimpl->root_path+"/"+name.substr(0, pos);
         //std::cout << "path:" << path << std::endl;
-        if ( !boost::filesystem::exists(path) ) {
-            boost::system::error_code ec;
-            boost::filesystem::create_directories(path, ec);
-            __YAL_THROW_IF(ec, "can't create directory(" +path+ "): " + ec.message());
+        if ( !exists(path.c_str()) ) {
+            bool ok = create_dir_tree(path.c_str());
+            __YAL_THROW_IF(!ok, "can't create volume path");
         }
     }
 

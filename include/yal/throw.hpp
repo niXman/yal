@@ -55,6 +55,9 @@ struct exception: std::exception {
 
 } // ns yal
 
+#undef __YAL_STRINGIZE_AUX
+#undef __YAL_STRINGIZE
+
 #define __YAL_STRINGIZE_AUX(x) #x
 #define __YAL_STRINGIZE(x) __YAL_STRINGIZE_AUX(x)
 

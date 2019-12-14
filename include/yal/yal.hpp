@@ -37,16 +37,8 @@
 #define DTF_HEADER_ONLY
 #include <yal/dtf.hpp>
 
-#include <boost/format.hpp>
-#include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/control/if.hpp>
-#include <boost/preprocessor/tuple/size.hpp>
-#include <boost/preprocessor/comparison/equal.hpp>
-#include <boost/preprocessor/stringize.hpp>
-#include <boost/version.hpp>
-#if BOOST_VERSION >= 106000
-#   include <boost/vmd/is_empty.hpp>
-#endif // ! BOOST_VERSION >= 106000
+#define FMT_HEADER_ONLY
+#include "libfmt/include/fmt/format.h"
 
 #include <cstdint>
 #include <cstring>
@@ -206,72 +198,8 @@ private:
 
 /***************************************************************************/
 
-#if BOOST_VERSION >= 106000
-#   define __YAL_PP_TUPLE_IS_EMPTY(...) BOOST_VMD_IS_EMPTY(__VA_ARGS__)
-#else // ! BOOST_VERSION >= 106000
-// based on the: http://gustedt.wordpress.com/2010/06/08/detect-empty-macro-arguments
-#   define __YAL_PP_ARG50( \
-          _0 , _1 , _2 , _3 , _4 , _5 , _6 , _7 , _8 , _9 \
-        , _10, _11, _12, _13, _14, _15, _16, _17, _18, _19 \
-        , _20, _21, _22, _23, _24, _25, _26, _27, _28, _29 \
-        , _30, _31, _32, _33, _34, _35, _36, _37, _38, _39 \
-        , _40, _41, _42, _43, _44, _45, _46, _47, _48, _49 \
-        , ...) _49
-#   define __YAL_PP_HAS_COMMA(...) \
-        __YAL_PP_ARG50( \
-            __VA_ARGS__, \
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
-            1, 1, 1, 1, 1, 1, 1, 1, 0 \
-        )
-#   define __YAL_PP_TRIGGER_PARENTHESIS_(...) ,
-#   define __YAL_PP_PASTE5(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
-#   define __YAL_PP_IS_EMPTY_CASE_0001 ,
-#   define __YAL_PP_IS_EMPTY_IMPL(_0, _1, _2, _3) __YAL_PP_HAS_COMMA(__YAL_PP_PASTE5(__YAL_PP_IS_EMPTY_CASE_, _0, _1, _2, _3))
-#   define __YAL_PP_TUPLE_IS_EMPTY(...) \
-        __YAL_PP_IS_EMPTY_IMPL( \
-            __YAL_PP_HAS_COMMA(__VA_ARGS__), \
-            __YAL_PP_HAS_COMMA(__YAL_PP_TRIGGER_PARENTHESIS_ __VA_ARGS__),                 \
-            __YAL_PP_HAS_COMMA(__VA_ARGS__ (/*empty*/)), \
-            __YAL_PP_HAS_COMMA(__YAL_PP_TRIGGER_PARENTHESIS_ __VA_ARGS__ (/*empty*/)) \
-        )
-#endif // BOOST_VERSION >= 106000
-
-/***************************************************************************/
-
-#define __YAL_PASTE_ELEM(unused, idx, args) \
-    % (BOOST_PP_TUPLE_ELEM(idx, args))
-
-#define __YAL_FORMAT_MESSAGE_WITHOUT_ARGS(...)
-
-#define __YAL_FORMAT_MESSAGE_WITH_ARGS(...) \
-    BOOST_PP_REPEAT( \
-         BOOST_PP_TUPLE_SIZE((__VA_ARGS__)) \
-        ,__YAL_PASTE_ELEM \
-        ,(__VA_ARGS__) \
-    )
-
-/***************************************************************************/
-
-/* usage:
- * std::cout << YAL_FORMAT_MESSAGE("message: %1%, %2%, %3%", "string1", 33, "string2") << std::endl;
- * std::string str = YAL_FORMAT_MESSAGE_AS_STRING("message: %1%, %2%, %3%", "string1", 33, "string2");
- */
-
-#define YAL_FORMAT_MESSAGE(fmt, ...) \
-    boost::format(fmt) \
-    BOOST_PP_IF( \
-         __YAL_PP_TUPLE_IS_EMPTY(__VA_ARGS__) \
-        ,__YAL_FORMAT_MESSAGE_WITHOUT_ARGS \
-        ,__YAL_FORMAT_MESSAGE_WITH_ARGS \
-    )(__VA_ARGS__)
-
-#define YAL_FORMAT_MESSAGE_AS_STRING(fmt, ...) \
-    (YAL_FORMAT_MESSAGE(fmt, __VA_ARGS__)).str()
-
-/***************************************************************************/
+#define __YAL_STRINGIZE_I(x) #x
+#define __YAL_STRINGIZE(x) __YAL_STRINGIZE_I(x)
 
 #ifndef YAL_DISABLE_LOGGING
 #   define YAL_EXPAND_EXPR(...) \
@@ -329,7 +257,7 @@ private:
 #   define __YAL_LOG_IMPL(log, errlvl, ...) \
         do { \
             if ( log->get_level() >= ::yal::level::errlvl ) { \
-                static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
+                static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
                 log->write( \
                      flbuf \
                     ,sizeof(flbuf)-1 \
@@ -337,14 +265,14 @@ private:
                     ,sizeof(__FUNCTION__)-1 \
                     ,__PRETTY_FUNCTION__ \
                     ,sizeof(__PRETTY_FUNCTION__)-1 \
-                    ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+                    ,::fmt::format(__VA_ARGS__) \
                     ,::yal::level::errlvl \
                 ); \
             } \
         } while(false)
 #   define __YAL_GLOBAL_LOG_IMPL(errlvl, ...) \
         do { \
-            static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
+            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
             ::yal::logger::write( \
                  flbuf \
                 ,sizeof(flbuf)-1 \
@@ -352,7 +280,7 @@ private:
                 ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
                 ,sizeof(__PRETTY_FUNCTION__)-1 \
-                ,YAL_FORMAT_MESSAGE_AS_STRING(__VA_ARGS__) \
+                ,::fmt::format(__VA_ARGS__) \
                 ,::yal::level::errlvl \
             ); \
         } while(false)
@@ -486,7 +414,7 @@ private:
 #ifndef YAL_DISABLE_ASSERT
 #   define YAL_ASSERT_LOG(log, ...) \
         if ( !(__VA_ARGS__) ) { \
-            static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
+            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
             log->write( \
                  flbuf \
                 ,sizeof(flbuf)-1 \
@@ -508,7 +436,7 @@ private:
             auto n = ::dtf::timestamp_to_chars(dtbuf, ::dtf::timestamp(), flags); \
             dtbuf[n] = 0; \
             stream \
-                << "[" << dtbuf << "][assert ][" __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__) "][" \
+                << "[" << dtbuf << "][assert ][" __FILE__ ":" __YAL_STRINGIZE(__LINE__) "][" \
                 << __PRETTY_FUNCTION__ << "]: expression \"" #__VA_ARGS__ "\" is false" \
             << std::endl; \
             std::abort(); \
@@ -540,7 +468,7 @@ struct timepoint {
         const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #   define YAL_PRINT_TIMEPOINT(log, name) \
         do { \
-            static const char flbuf[] = __FILE__ ":" BOOST_PP_STRINGIZE(__LINE__); \
+            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
             const auto d = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
             log->write( \
                  flbuf \
@@ -549,8 +477,8 @@ struct timepoint {
                 ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
                 ,sizeof(__PRETTY_FUNCTION__)-1 \
-                ,YAL_FORMAT_MESSAGE_AS_STRING( \
-                     "execution time of scope(\"%s\") in lines %d-%d is %ds-%dms-%dus-%dns" \
+                ,::fmt::format( \
+                     "execution time of scope(\"{}\") in lines {}-{} is {}s-{}ms-{}us-{}ns" \
                     ,_yal_timepoint_##name.descr \
                     ,_yal_timepoint_##name.sline \
                     ,__LINE__ \
@@ -582,13 +510,13 @@ struct timepoint {
 #   define YAL_TYPED_CATCH(log, extype, flag, msg) \
         catch (const extype &ex) { \
             flag = true; \
-            YAL_LOG_ERROR(log, "[" #extype "](in_lines:%1%-%2%): \"%3%\", msg: \"%4%\"", _yal_try_##flag##_line, __LINE__, ex.what(), msg); \
+            YAL_LOG_ERROR(log, "[" #extype "](in_lines:{}-{}): \"{}\", msg: \"{}\"", _yal_try_##flag##_line, __LINE__, ex.what(), msg); \
         }
 #   define YAL_CATCH(log, flag, msg) \
         YAL_TYPED_CATCH(log, std::exception, flag, msg) \
         catch (...) { \
             flag = true; \
-            YAL_LOG_ERROR(log, "[unknown_exception](in_lines:%1%-%2%): \"%3%\"", _yal_try_##flag##_line, __LINE__, msg); \
+            YAL_LOG_ERROR(log, "[unknown_exception](in_lines:{}-{}): \"{}\"", _yal_try_##flag##_line, __LINE__, msg); \
         }
 #else
 #   define YAL_TRY(flag) \
@@ -606,8 +534,8 @@ struct timepoint {
 /***************************************************************************/
 
 #ifndef YAL_DISABLE_THROW
-#   define __YAL_MAKE_FILELINE() __FILE__ "(" BOOST_PP_STRINGIZE(__LINE__) "): "
-#   define YAL_TYPED_THROW(type, msg) throw type(__YAL_MAKE_FILELINE() msg);
+#   define __YAL_MAKE_FILELINE __FILE__ "(" __YAL_STRINGIZE(__LINE__) "): "
+#   define YAL_TYPED_THROW(type, msg) throw type(__YAL_MAKE_FILELINE msg);
 #   define YAL_THROW(msg) YAL_TYPED_THROW(std::runtime_error, msg);
 #   define YAL_THROW_IF(expr) if ( (expr) ) YAL_THROW(#expr)
 #   define YAL_TYPED_THROW_IF(type, expr) if ( (expr) ) YAL_TYPED_THROW(type, #expr)

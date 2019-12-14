@@ -22,12 +22,9 @@ set(SOURCE_FILES
     ../../src/yal.cpp
 )
 
-link_directories(/usr/local/lib)
-
 add_executable(base ${SOURCE_FILES})
 
-target_link_libraries(base
-    boost_system
-    boost_filesystem
+target_link_libraries(
+    base
     z
 )
