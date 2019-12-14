@@ -58,25 +58,25 @@ int main() {
             YAL_LOG_WARNING       (test1, "test1-W: {0} -> {1} -> {0}", idx, idx+1);
             YAL_LOG_ERROR         (test1, "test1-E: {0} -> {1} -> {0}", idx, idx+1);
 
-            YAL_LOG_INFO          (test2, "test2-I: %016d -> %016d", idx, idx);
-            YAL_LOG_DEBUG         (test2, "test2-D: %016d -> %016d", idx, idx);
-            YAL_LOG_WARNING       (test2, "test2-W: %016d -> %016d", idx, idx);
-            YAL_LOG_ERROR         (test2, "test2-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test2, "test2-I: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_DEBUG         (test2, "test2-D: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_WARNING       (test2, "test2-W: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_ERROR         (test2, "test2-E: {:016d} -> {:016d}", idx, idx);
 
-            YAL_LOG_INFO          (test3, "test3-I: %016d -> %016d", idx, idx);
-            YAL_LOG_DEBUG         (test3, "test3-D: %016d -> %016d", idx, idx);
-            YAL_LOG_WARNING       (test3, "test3-W: %016d -> %016d", idx, idx);
-            YAL_LOG_ERROR         (test3, "test3-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test3, "test3-I: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_DEBUG         (test3, "test3-D: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_WARNING       (test3, "test3-W: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_ERROR         (test3, "test3-E: {:016d} -> {:016d}", idx, idx);
 
-            YAL_LOG_INFO          (test4, "test4-I: %016d -> %016d", idx, idx);
-            YAL_LOG_DEBUG         (test4, "test4-D: %016d -> %016d", idx, idx);
-            YAL_LOG_WARNING       (test4, "test4-W: %016d -> %016d", idx, idx);
-            YAL_LOG_ERROR         (test4, "test4-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test4, "test4-I: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_DEBUG         (test4, "test4-D: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_WARNING       (test4, "test4-W: {:016d} -> {:016d}", idx, idx);
+            YAL_LOG_ERROR         (test4, "test4-E: {:016d} -> {:016d}", idx, idx);
 
-            YAL_GLOBAL_LOG_INFO   ("global-I: %016d -> %016d", idx2, idx2);
-            YAL_GLOBAL_LOG_DEBUG  ("global-D: %016d -> %016d", idx2, idx2);
-            YAL_GLOBAL_LOG_WARNING("global-W: %016d -> %016d", idx2, idx2);
-            YAL_GLOBAL_LOG_ERROR  ("global-E: %016d -> %016d", idx2, idx2);
+            YAL_GLOBAL_LOG_INFO   ("global-I: {:016d} -> {:016d}", idx2, idx2);
+            YAL_GLOBAL_LOG_DEBUG  ("global-D: {:016d} -> {:016d}", idx2, idx2);
+            YAL_GLOBAL_LOG_WARNING("global-W: {:016d} -> {:016d}", idx2, idx2);
+            YAL_GLOBAL_LOG_ERROR  ("global-E: {:016d} -> {:016d}", idx2, idx2);
         }
         YAL_FLUSH();
 
