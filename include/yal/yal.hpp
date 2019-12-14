@@ -38,6 +38,7 @@
 #include <yal/dtf.hpp>
 
 #define FMT_HEADER_ONLY
+#include "libfmt/include/fmt/ostream.h"
 #include "libfmt/include/fmt/format.h"
 
 #include <cstdint>
@@ -68,6 +69,7 @@ enum level {
     ,disable = 0
 };
 
+const char* level_str(const level lvl);
 char level_chr(const level lvl);
 
 /***************************************************************************/
@@ -81,6 +83,8 @@ using process_buffer = std::function<
 struct session {
     session(const session &) = delete;
     session& operator=(const session &) = delete;
+    session(session &&) = default;
+    session& operator=(session &&) = default;
 
     session(
          const std::string &path
@@ -112,7 +116,7 @@ struct session {
 
 private:
     struct impl;
-    impl *pimpl;
+    std::unique_ptr<impl> pimpl;
 }; // struct session
 
 /***************************************************************************/
@@ -120,6 +124,8 @@ private:
 struct session_manager {
     session_manager(const session_manager &) = delete;
     session_manager& operator=(const session_manager &) = delete;
+    session_manager(session_manager &&) = delete;
+    session_manager& operator=(session_manager &&) = delete;
 
     session_manager();
     virtual ~session_manager();
@@ -148,7 +154,7 @@ struct session_manager {
 
 private:
     struct impl;
-    impl *pimpl;
+    std::unique_ptr<impl> pimpl;
 }; // struct session_manager
 
 /***************************************************************************/
@@ -162,6 +168,8 @@ using session = std::shared_ptr<detail::session>;
 struct logger {
     logger(const logger &) = delete;
     logger& operator=(const logger &) = delete;
+    logger(logger &&) = delete;
+    logger& operator=(logger &&) = delete;
 
     static void root_path(const std::string &path);
     static const std::string& root_path();
@@ -240,7 +248,7 @@ private:
         YAL_SESSION_DECLARE_VAR(var) = YAL_SESSION_GET(name)
 
 #   define YAL_SESSION_EXISTS(name) \
-        (::yal::logger::get(name).get() != 0)
+        (::yal::logger::get(name).get() != nullptr)
 
 #   define YAL_SESSION_FLUSH(log) \
         log->flush()

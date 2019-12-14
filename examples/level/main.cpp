@@ -36,34 +36,24 @@
 /***************************************************************************/
 
 int main() {
-	YAL_SESSION_CREATE(log, "log", 1024*10);
+    YAL_SESSION_CREATE(log, "log", 1024*10);
 
-	yal::level lvl = yal::info;
-	for ( std::size_t idx = 0; idx < 15; ++idx ) {
-		switch (idx) {
-			case 0: case 1: case 2:
-			lvl = yal::info;
-			break;
-			case 3: case 4: case 5:
-			lvl = yal::debug;
-			break;
-			case 6: case 7: case 8:
-			lvl = yal::warning;
-			break;
-			case 9: case 10: case 11:
-			lvl = yal::error;
-			break;
-			default:
-			lvl = yal::disable;
-			break;
-		}
-		YAL_SESSION_SET_LEVEL(log, lvl);
+    yal::level lvl = yal::info;
+    for ( std::size_t idx = 0; idx < 15; ++idx ) {
+        switch (idx) {
+            case 0: case 1: case 2: lvl = yal::info; break;
+            case 3: case 4: case 5: lvl = yal::debug; break;
+            case 6: case 7: case 8: lvl = yal::warning; break;
+            case 9: case 10: case 11: lvl = yal::error; break;
+            default: lvl = yal::disable; break;
+        }
+        YAL_SESSION_SET_LEVEL(log, lvl);
 
-		YAL_LOG_INFO	(log, "INFO    LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
-		YAL_LOG_DEBUG	(log, "DEBUG   LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
-		YAL_LOG_WARNING(log, "WARNING LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
-		YAL_LOG_ERROR	(log, "ERROR   LEVEL, idx = %1%, lvl = %2%", idx, yal::level_str(lvl));
-	}
+        YAL_LOG_INFO   (log, "INFO    LEVEL, idx = {}, lvl = {}", idx, yal::level_str(lvl));
+        YAL_LOG_DEBUG  (log, "DEBUG   LEVEL, idx = {}, lvl = {}", idx, yal::level_str(lvl));
+        YAL_LOG_WARNING(log, "WARNING LEVEL, idx = {}, lvl = {}", idx, yal::level_str(lvl));
+        YAL_LOG_ERROR  (log, "ERROR   LEVEL, idx = {}, lvl = {}", idx, yal::level_str(lvl));
+    }
 }
 
 /***************************************************************************/

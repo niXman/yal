@@ -35,33 +35,34 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 /***************************************************************************/
 
 std::vector<std::string>
 get_list_of_files() {
-	std::vector<std::string> res;
+    std::vector<std::string> res;
 
-	boost::filesystem::directory_iterator cur("./"), end;
+    boost::filesystem::directory_iterator cur("./"), end;
 
-	for ( ;cur != end; ++cur ) {
-		res.push_back(cur->path().string());
-	}
+    for ( ;cur != end; ++cur ) {
+        res.push_back(cur->path().string());
+    }
 
-	return res;
+    return res;
 }
 
 /***************************************************************************/
 
 int main() {
-	const std::vector<std::string> src = get_list_of_files();
+    const std::vector<std::string> src = get_list_of_files();
 
-	YAL_SESSION_CREATE(session1, "disable");
-	YAL_SESSION_TO_TERM(session1, true, "terminal");
+    YAL_SESSION_CREATE(session1, "disable");
+    YAL_SESSION_TO_TERM(session1, true, "terminal");
 
-	const std::vector<std::string> dst = get_list_of_files();
+    const std::vector<std::string> dst = get_list_of_files();
 
-	YAL_ASSERT_TERM(std::cerr, src == dst);
+    YAL_ASSERT_TERM(std::cerr, src == dst);
 }
 
 /***************************************************************************/

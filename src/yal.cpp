@@ -98,7 +98,7 @@ std::size_t file_size(const char *fname) {
     struct ::stat st{};
     ::stat(fname, &st);
 
-    return st.st_size;
+    return static_cast<std::size_t>(st.st_size);
 }
 
 #endif // WIN32
@@ -137,14 +137,20 @@ using guard_t = std::lock_guard<mutex_t>;
 
 /***************************************************************************/
 
-char level_chr(const level lvl) {
+const char *level_str(const level lvl) {
     return (
-        lvl == yal::info ? 'I'
-            : lvl == yal::debug ? 'D'
-                : lvl == yal::warning ? 'W'
-                    : lvl == yal::error ? 'E'
-                        : 'X'
+        lvl == yal::info ? "I"
+            : lvl == yal::debug ? "D"
+                : lvl == yal::warning ? "W"
+                    : lvl == yal::error ? "E"
+                        : "X"
     );
+}
+
+char level_chr(const level lvl) {
+    const char *str = level_str(lvl);
+
+    return str[0];
 }
 
 /***************************************************************************/
@@ -612,7 +618,7 @@ session::session(
 {}
 
 session::~session()
-{ delete pimpl; }
+{}
 
 /***************************************************************************/
 
@@ -688,7 +694,7 @@ session_manager::session_manager()
 }
 
 session_manager::~session_manager()
-{ delete pimpl; }
+{}
 
 /***************************************************************************/
 

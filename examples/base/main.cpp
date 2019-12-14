@@ -37,123 +37,123 @@
 /***************************************************************************/
 
 int main() {
-	static const char *s1name = "test1/test1/test1.log";
-	static const char *s2name = "test2.log";
-	static const char *s3name = "test3/test3";
-	static const char *s4name = "test4";
-	static const char *s5name = "test5";
+    static const char *s1name = "test1/test1/test1.log";
+    static const char *s2name = "test2.log";
+    static const char *s3name = "test3/test3";
+    static const char *s4name = "test4";
+    static const char *s5name = "test5";
 
-	try {
-		YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res|yal::create_index_file,
-			[](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
-		);
-		YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
-		YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res);
-		YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);
-//		YAL_SESSION_TO_TERM(test1, true, "term1");
+    try {
+        YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res|yal::create_index_file,
+            [](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
+        );
+        YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
+        YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res);
+        YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);
+    //		YAL_SESSION_TO_TERM(test1, true, "term1");
 
-		for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {
-			YAL_LOG_INFO          (test1, "test1-I: %1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_DEBUG         (test1, "test1-D: %1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_WARNING       (test1, "test1-W: %1% -> %2% -> %1%", idx, idx+1);
-			YAL_LOG_ERROR         (test1, "test1-E: %1% -> %2% -> %1%", idx, idx+1);
+        for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {
+            YAL_LOG_INFO          (test1, "test1-I: {0} -> {1} -> {0}", idx, idx+1);
+            YAL_LOG_DEBUG         (test1, "test1-D: {0} -> {1} -> {0}", idx, idx+1);
+            YAL_LOG_WARNING       (test1, "test1-W: {0} -> {1} -> {0}", idx, idx+1);
+            YAL_LOG_ERROR         (test1, "test1-E: {0} -> {1} -> {0}", idx, idx+1);
 
-			YAL_LOG_INFO          (test2, "test2-I: %016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG         (test2, "test2-D: %016d -> %016d", idx, idx);
-			YAL_LOG_WARNING       (test2, "test2-W: %016d -> %016d", idx, idx);
-			YAL_LOG_ERROR         (test2, "test2-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test2, "test2-I: %016d -> %016d", idx, idx);
+            YAL_LOG_DEBUG         (test2, "test2-D: %016d -> %016d", idx, idx);
+            YAL_LOG_WARNING       (test2, "test2-W: %016d -> %016d", idx, idx);
+            YAL_LOG_ERROR         (test2, "test2-E: %016d -> %016d", idx, idx);
 
-			YAL_LOG_INFO          (test3, "test3-I: %016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG         (test3, "test3-D: %016d -> %016d", idx, idx);
-			YAL_LOG_WARNING       (test3, "test3-W: %016d -> %016d", idx, idx);
-			YAL_LOG_ERROR         (test3, "test3-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test3, "test3-I: %016d -> %016d", idx, idx);
+            YAL_LOG_DEBUG         (test3, "test3-D: %016d -> %016d", idx, idx);
+            YAL_LOG_WARNING       (test3, "test3-W: %016d -> %016d", idx, idx);
+            YAL_LOG_ERROR         (test3, "test3-E: %016d -> %016d", idx, idx);
 
-			YAL_LOG_INFO          (test4, "test4-I: %016d -> %016d", idx, idx);
-			YAL_LOG_DEBUG         (test4, "test4-D: %016d -> %016d", idx, idx);
-			YAL_LOG_WARNING       (test4, "test4-W: %016d -> %016d", idx, idx);
-			YAL_LOG_ERROR         (test4, "test4-E: %016d -> %016d", idx, idx);
+            YAL_LOG_INFO          (test4, "test4-I: %016d -> %016d", idx, idx);
+            YAL_LOG_DEBUG         (test4, "test4-D: %016d -> %016d", idx, idx);
+            YAL_LOG_WARNING       (test4, "test4-W: %016d -> %016d", idx, idx);
+            YAL_LOG_ERROR         (test4, "test4-E: %016d -> %016d", idx, idx);
 
-			YAL_GLOBAL_LOG_INFO   ("global-I: %016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_DEBUG  ("global-D: %016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_WARNING("global-W: %016d -> %016d", idx2, idx2);
-			YAL_GLOBAL_LOG_ERROR  ("global-E: %016d -> %016d", idx2, idx2);
-		}
-		YAL_FLUSH();
+            YAL_GLOBAL_LOG_INFO   ("global-I: %016d -> %016d", idx2, idx2);
+            YAL_GLOBAL_LOG_DEBUG  ("global-D: %016d -> %016d", idx2, idx2);
+            YAL_GLOBAL_LOG_WARNING("global-W: %016d -> %016d", idx2, idx2);
+            YAL_GLOBAL_LOG_ERROR  ("global-E: %016d -> %016d", idx2, idx2);
+        }
+        YAL_FLUSH();
 
-		YAL_SESSION_GET2(ts1, s1name);
-		YAL_ASSERT_TERM(std::cerr, ts1);
-		YAL_SESSION_GET2(ts2, s2name);
-		YAL_ASSERT_TERM(std::cerr, ts2);
-		YAL_SESSION_GET2(ts3, s3name);
-		YAL_ASSERT_TERM(std::cerr, ts3);
-		YAL_SESSION_GET2(ts4, s4name);
-		YAL_ASSERT_TERM(std::cerr, ts4);
-		YAL_SESSION_GET2(ts5, s5name);
-		YAL_ASSERT_TERM(std::cerr, !ts5);
+        YAL_SESSION_GET2(ts1, s1name);
+        YAL_ASSERT_TERM(std::cerr, ts1);
+        YAL_SESSION_GET2(ts2, s2name);
+        YAL_ASSERT_TERM(std::cerr, ts2);
+        YAL_SESSION_GET2(ts3, s3name);
+        YAL_ASSERT_TERM(std::cerr, ts3);
+        YAL_SESSION_GET2(ts4, s4name);
+        YAL_ASSERT_TERM(std::cerr, ts4);
+        YAL_SESSION_GET2(ts5, s5name);
+        YAL_ASSERT_TERM(std::cerr, !ts5);
 
-		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s1name));
-		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s2name));
-		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s3name));
-		YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s4name));
-		YAL_ASSERT_TERM(std::cerr, !YAL_SESSION_EXISTS(s5name));
+        YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s1name));
+        YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s2name));
+        YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s3name));
+        YAL_ASSERT_TERM(std::cerr,  YAL_SESSION_EXISTS(s4name));
+        YAL_ASSERT_TERM(std::cerr, !YAL_SESSION_EXISTS(s5name));
 
-		YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res);
-		YAL_SESSION_TO_TERM(test5, true, "test5 term");
-		YAL_TEST_LESS   (test5, 0, 1);
-		YAL_TEST_LESS   (test5, 1, 1); // test fail
-		YAL_TEST_LESSEQ (test5, 1, 1);
-		YAL_TEST_LESSEQ (test5, 2, 1); // test fail
-		YAL_TEST_EQ     (test5, 1, 1);
-		YAL_TEST_EQ     (test5, 2, 1); // test fail
-		YAL_TEST_NEQ    (test5, 0, 1);
-		YAL_TEST_NEQ    (test5, 1, 1); // test fail
-		YAL_TEST_GR     (test5, 1, 0);
-		YAL_TEST_GR     (test5, 1, 1); // test fail
-		YAL_TEST_GREQ   (test5, 1, 0);
-		YAL_TEST_GREQ   (test5, 1, 2); // test fail
-		YAL_TEST_ZERO   (test5, 0);
-		YAL_TEST_ZERO   (test5, 1); // test fail
-		YAL_TEST_NOTZERO(test5, 1);
-		YAL_TEST_NOTZERO(test5, 0); // test fail
-		YAL_TEST_NULL   (test5, nullptr);
-		YAL_TEST_NULL   (test5, "cstring"); // test fail
-		YAL_TEST_NOTNULL(test5, "cstring");
-		YAL_TEST_NOTNULL(test5, nullptr); // test fail
+        YAL_SESSION_CREATE(test5, s5name, 1024*10, yal::usec_res);
+        YAL_SESSION_TO_TERM(test5, true, "test5 term");
+        YAL_TEST_LESS   (test5, 0, 1);
+        YAL_TEST_LESS   (test5, 1, 1); // test fail
+        YAL_TEST_LESSEQ (test5, 1, 1);
+        YAL_TEST_LESSEQ (test5, 2, 1); // test fail
+        YAL_TEST_EQ     (test5, 1, 1);
+        YAL_TEST_EQ     (test5, 2, 1); // test fail
+        YAL_TEST_NEQ    (test5, 0, 1);
+        YAL_TEST_NEQ    (test5, 1, 1); // test fail
+        YAL_TEST_GR     (test5, 1, 0);
+        YAL_TEST_GR     (test5, 1, 1); // test fail
+        YAL_TEST_GREQ   (test5, 1, 0);
+        YAL_TEST_GREQ   (test5, 1, 2); // test fail
+        YAL_TEST_ZERO   (test5, 0);
+        YAL_TEST_ZERO   (test5, 1); // test fail
+        YAL_TEST_NOTZERO(test5, 1);
+        YAL_TEST_NOTZERO(test5, 0); // test fail
+        YAL_TEST_NULL   (test5, nullptr);
+        YAL_TEST_NULL   (test5, "cstring"); // test fail
+        YAL_TEST_NOTNULL(test5, "cstring");
+        YAL_TEST_NOTNULL(test5, nullptr); // test fail
 
-#if 0
-		YAL_ASSERT_LOG(test5, true);
-		YAL_ASSERT_LOG(test5, false); // test fail
-		YAL_ASSERT_LOG(test5, true);
-		YAL_ASSERT_LOG(test5, false); // test fail
+    #if 0
+        YAL_ASSERT_LOG(test5, true);
+        YAL_ASSERT_LOG(test5, false); // test fail
+        YAL_ASSERT_LOG(test5, true);
+        YAL_ASSERT_LOG(test5, false); // test fail
 
-		YAL_ASSERT_TERM(std::cerr, true);
-		YAL_ASSERT_TERM(std::cerr, false); // test fail
-		YAL_ASSERT_TERM(std::cerr, true);
-		YAL_ASSERT_TERM(std::cerr, false); // test fail
-#endif
+        YAL_ASSERT_TERM(std::cerr, true);
+        YAL_ASSERT_TERM(std::cerr, false); // test fail
+        YAL_ASSERT_TERM(std::cerr, true);
+        YAL_ASSERT_TERM(std::cerr, false); // test fail
+    #endif
 
-		YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
-		std::this_thread::sleep_for(std::chrono::nanoseconds(3333333333));
-		YAL_PRINT_TIMEPOINT(test5, tp1);
+        YAL_MAKE_TIMEPOINT(tp1, "tp1 description");
+        std::this_thread::sleep_for(std::chrono::nanoseconds(3333333333));
+        YAL_PRINT_TIMEPOINT(test5, tp1);
 
-		YAL_TRY(scope_flag0) {
-			throw std::runtime_error("std::exception message");
-		}
-		YAL_CATCH(test5, scope_flag0, "catch0 message")
-		YAL_ASSERT_LOG(test5, scope_flag0);
+        YAL_TRY(scope_flag0) {
+            throw std::runtime_error("std::exception message");
+        }
+        YAL_CATCH(test5, scope_flag0, "catch0 message")
+        YAL_ASSERT_LOG(test5, scope_flag0);
 
-		YAL_TRY(scope_flag1) {
-			throw 1;
-		}
-		YAL_CATCH(test5, scope_flag1, "catch1 message")
-		YAL_ASSERT_LOG(test5, scope_flag1);
+        YAL_TRY(scope_flag1) {
+            throw 1;
+        }
+        YAL_CATCH(test5, scope_flag1, "catch1 message")
+        YAL_ASSERT_LOG(test5, scope_flag1);
 
-		YAL_TRY(scope_flag2) {
-			throw std::invalid_argument("std::invalid_argument message");
-		}
-		YAL_TYPED_CATCH(test5, std::invalid_argument, scope_flag2, "catch2 message")
-		YAL_CATCH(test5, scope_flag2, "catch3 message")
-		YAL_ASSERT_LOG(test5, scope_flag2);
+        YAL_TRY(scope_flag2) {
+            throw std::invalid_argument("std::invalid_argument message");
+        }
+        YAL_TYPED_CATCH(test5, std::invalid_argument, scope_flag2, "catch2 message")
+        YAL_CATCH(test5, scope_flag2, "catch3 message")
+        YAL_ASSERT_LOG(test5, scope_flag2);
 
         YAL_TRY(scope_flag3) {
             YAL_THROW("test throw0");
@@ -164,16 +164,16 @@ int main() {
             YAL_TYPED_THROW(std::invalid_argument, "test throw1");
         } YAL_TYPED_CATCH(test5, std::invalid_argument, scope_flag4, "catch5 message")
         YAL_ASSERT_LOG(test5, scope_flag4);
-	} catch(const std::exception &ex) {
-		std::cout << "[std::exception]: " << ex.what() << std::endl;
-		return EXIT_FAILURE;
-	} catch(...) {
-		std::cout << "[unexpected exception]" << std::endl;
-		return EXIT_FAILURE;
-	}
+    } catch(const std::exception &ex) {
+        std::cout << "[std::exception]: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    } catch(...) {
+        std::cout << "[unexpected exception]" << std::endl;
+        return EXIT_FAILURE;
+    }
 
-	std::cout << "EXIT_SUCCESS" << std::endl;
-	return EXIT_SUCCESS;
+    std::cout << "EXIT_SUCCESS" << std::endl;
+    return EXIT_SUCCESS;
 }
 
 /***************************************************************************/

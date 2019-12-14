@@ -38,42 +38,41 @@
 /***************************************************************************/
 
 struct type {
-	type()
-		YAL_SESSION_CREATE3(log1, "log1") // :log1(...)
-		YAL_SESSION_CREATE4(log2, "log2") // ,log2(...)
-	{
-		YAL_LOG_ERROR(log1, "fmt string %1%", 33);
-		YAL_LOG_DEBUG(log2, "fmt string %1%", 44);
-	}
+    type()
+        YAL_SESSION_CREATE3(log1, "log1") // :log1(...)
+        YAL_SESSION_CREATE4(log2, "log2") // ,log2(...)
+    {
+        YAL_LOG_ERROR(log1, "fmt string {}", 33);
+        YAL_LOG_DEBUG(log2, "fmt string {}", 44);
+    }
 
-	type(const type &r)
-		YAL_SESSION_INIT_VAR(log1, r.log1) // :log1(r.log1)
-		YAL_SESSION_INIT_VAR2(log2, r.log2)// ,log2(r.log2)
-	{ ((void)r); }
+    type(const type &r)
+        YAL_SESSION_INIT_VAR(log1, r.log1) // :log1(r.log1)
+        YAL_SESSION_INIT_VAR2(log2, r.log2)// ,log2(r.log2)
+    { ((void)r); }
 
-	type(type &&r)
-		YAL_SESSION_INIT_VAR(log1, std::move(r.log1)) // :log1(std::move(r.log1))
-		YAL_SESSION_INIT_VAR2(log2, std::move(r.log2))// ,log2(std::move(r.log2))
-	{}
+    type(type &&r)
+        YAL_SESSION_INIT_VAR(log1, std::move(r.log1)) // :log1(std::move(r.log1))
+        YAL_SESSION_INIT_VAR2(log2, std::move(r.log2))// ,log2(std::move(r.log2))
+    {}
 
-	void func() {
-		YAL_LOG_ERROR_IF(log1, 0, "some error %", "message 1");
-		YAL_LOG_ERROR_IF(log2, 0, "some error %", "message 2");
-	}
+    void func() {
+        YAL_LOG_ERROR_IF(log1, 0, "some error {}", "message 1");
+        YAL_LOG_ERROR_IF(log2, 0, "some error {}", "message 2");
+    }
 private:
-	YAL_SESSION_DECLARE_VAR(log1); // ::yal::session log1;
-	YAL_SESSION_DECLARE_VAR(log2); // ::yal::session log2;
+    YAL_SESSION_DECLARE_VAR(log1); // ::yal::session log1;
+    YAL_SESSION_DECLARE_VAR(log2); // ::yal::session log2;
 };
 
 /***************************************************************************/
 
 int main() {
+    type t;
+    t.func();
 
-	type t;
-	t.func();
-
-	std::cout << "EXIT_SUCCESS" << std::endl;
-	return EXIT_SUCCESS;
+    std::cout << "EXIT_SUCCESS" << std::endl;
+    return EXIT_SUCCESS;
 }
 
 /***************************************************************************/
