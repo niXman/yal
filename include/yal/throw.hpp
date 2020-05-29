@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2019 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2020 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -48,6 +48,9 @@ struct exception: std::exception {
 	{}
 	virtual ~exception() {}
 
+	exception(const exception &r) = default;
+	exception(exception &&r) = default;
+
 	const char* what() const noexcept { return msg.c_str(); }
 
 	const std::string msg;
@@ -69,7 +72,7 @@ struct exception: std::exception {
 	}
 #else
 #define __YAL_THROW_IF(expr, msg) \
-	if ( (expr) ) { \
+	if ( expr ) { \
 		const int __ec = errno; \
 		char __buf[1024] = "\0"; \
 		const char *__bufp = strerror_r(__ec, __buf, sizeof(__buf)); \

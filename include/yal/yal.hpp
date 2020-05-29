@@ -1,5 +1,5 @@
 
-// Copyright (c) 2013-2019 niXman (i dotty nixman doggy gmail dotty com)
+// Copyright (c) 2013-2020 niXman (i dotty nixman doggy gmail dotty com)
 // All rights reserved.
 //
 // This file is part of YAL(https://github.com/niXman/yal) project.
@@ -105,6 +105,8 @@ struct session {
     void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfileline
+        ,const std::size_t sfileline_len
         ,const char *sfunc
         ,const std::size_t sfunc_len
         ,const char *func
@@ -139,6 +141,8 @@ struct session_manager {
     void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfileline
+        ,const std::size_t sfileline_len
         ,const char *sfunc
         ,const std::size_t sfunc_len
         ,const char *func
@@ -186,6 +190,8 @@ struct logger {
     static void write(
          const char *fileline
         ,const std::size_t fileline_len
+        ,const char *sfileline
+        ,const std::size_t sfileline_len
         ,const char *sfunc
         ,const std::size_t sfunc_len
         ,const char *func
@@ -208,6 +214,26 @@ private:
 
 #define __YAL_STRINGIZE_I(x) #x
 #define __YAL_STRINGIZE(x) __YAL_STRINGIZE_I(x)
+
+#if defined(WIN32) || defined(_WIN32)
+#   define __YAL_CHARSEP '\\'
+#else
+#   define __YAL_CHARSEP '/'
+#endif // WIN32
+
+constexpr const char* __yal_strrchr(const char *fl, std::size_t len) {
+    return (len && *fl != __YAL_CHARSEP)
+        ? __yal_strrchr(fl-1, len-1)
+        : (len ? fl+1 : fl)
+    ;
+}
+
+constexpr std::size_t __yal_strlen(const char *s, std::size_t len = 0) {
+    return (*s)
+        ? __yal_strlen(s+1, len+1)
+        : len
+    ;
+}
 
 #ifndef YAL_DISABLE_LOGGING
 #   define YAL_EXPAND_EXPR(...) \
@@ -265,10 +291,14 @@ private:
 #   define __YAL_LOG_IMPL(log, errlvl, ...) \
         do { \
             if ( log->get_level() >= ::yal::level::errlvl ) { \
-                static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+                constexpr const char *flbuf = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+                constexpr std::size_t fllen = __yal_strlen(flbuf); \
+                constexpr const char *sfl = __yal_strrchr(flbuf+fllen, fllen); \
                 log->write( \
                      flbuf \
-                    ,sizeof(flbuf)-1 \
+                    ,fllen \
+                    ,sfl \
+                    ,fllen-(sfl-flbuf) \
                     ,__FUNCTION__ \
                     ,sizeof(__FUNCTION__)-1 \
                     ,__PRETTY_FUNCTION__ \
@@ -280,10 +310,14 @@ private:
         } while(false)
 #   define __YAL_GLOBAL_LOG_IMPL(errlvl, ...) \
         do { \
-            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr const char *flbuf = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr std::size_t fllen = __yal_strlen(flbuf); \
+            constexpr const char *sfl = __yal_strrchr(flbuf+fllen, fllen); \
             ::yal::logger::write( \
                  flbuf \
-                ,sizeof(flbuf)-1 \
+                ,fllen \
+                ,sfl \
+                ,sfl-flbuf \
                 ,__FUNCTION__ \
                 ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
@@ -422,10 +456,14 @@ private:
 #ifndef YAL_DISABLE_ASSERT
 #   define YAL_ASSERT_LOG(log, ...) \
         if ( !(__VA_ARGS__) ) { \
-            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr const char *flbuf = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr std::size_t fllen = __yal_strlen(flbuf); \
+            constexpr const char *sfl = __yal_strrchr(flbuf+fllen, fllen); \
             log->write( \
                  flbuf \
-                ,sizeof(flbuf)-1 \
+                ,fllen \
+                ,sfl \
+                ,sfl-flbuf \
                 ,__FUNCTION__ \
                 ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
@@ -476,11 +514,15 @@ struct timepoint {
         const ::yal::detail::timepoint _yal_timepoint_##name{__LINE__, descr, std::chrono::high_resolution_clock::now()}
 #   define YAL_PRINT_TIMEPOINT(log, name) \
         do { \
-            static const char flbuf[] = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr const char *flbuf = __FILE__ ":" __YAL_STRINGIZE(__LINE__); \
+            constexpr std::size_t fllen = __yal_strlen(flbuf); \
+            constexpr const char *sfl = __yal_strrchr(flbuf+fllen, fllen); \
             const auto d = std::chrono::high_resolution_clock::now() - _yal_timepoint_##name.time; \
             log->write( \
                  flbuf \
-                ,sizeof(flbuf)-1 \
+                ,fllen \
+                ,sfl \
+                ,sfl-flbuf \
                 ,__FUNCTION__ \
                 ,sizeof(__FUNCTION__)-1 \
                 ,__PRETTY_FUNCTION__ \
