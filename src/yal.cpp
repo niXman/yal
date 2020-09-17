@@ -384,7 +384,7 @@ struct session::impl {
             }
 
             if ( fname.find(active_ext) != std::string::npos )
-                for_rename.push_back(path);
+                for_rename.push_back(fpath);
 
             auto beg = std::find(fname.begin(), fname.end(), '-');
             if ( beg == fname.end() || beg+1 == fname.end() )
