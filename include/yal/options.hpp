@@ -32,9 +32,11 @@
 #ifndef _yal__options_hpp
 #define _yal__options_hpp
 
+#include <cstdint>
+
 namespace yal {
 
-enum options {
+enum options: std::size_t {
      sec_res             = 1u<<0u  // seconds resolution (by default)
     ,msec_res            = 1u<<1u  // milliseconds resolution
     ,usec_res            = 1u<<2u  // microseconds resolution
