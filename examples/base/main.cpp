@@ -47,9 +47,17 @@ int main() {
         YAL_SESSION_CREATE(test1, s1name, 1024*1024, yal::sec_res|yal::create_index_file,
             [](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
         );
+        YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test1) == (yal::sec_res|yal::create_index_file));
+
         YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
+        YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test2) == (yal::usec_res|yal::compress));
+
         YAL_SESSION_CREATE(test3, s3name, 1024*1024, yal::nsec_res);
+        YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test3) == yal::nsec_res);
+
         YAL_SESSION_CREATE(test4, s4name, 1024*1024, yal::nsec_res|yal::compress);
+        YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test4) == (yal::nsec_res|yal::compress));
+
     //		YAL_SESSION_TO_TERM(test1, true, "term1");
 
         for ( auto idx = 0ul, idx2 = 0ul; idx < 1024ul*10ul; idx+=2, idx2+=3 ) {

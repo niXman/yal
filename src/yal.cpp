@@ -307,7 +307,7 @@ struct session::impl {
          const std::string &path
         ,const std::string &name
         ,std::size_t volume_size
-        ,std::uint32_t opts
+        ,std::size_t opts
         ,process_buffer proc
     )
         :m_path(path)
@@ -595,7 +595,7 @@ struct session::impl {
     const std::string        m_path;
     const std::string        m_name;
     const std::size_t        m_volume_size;
-    const std::uint32_t      m_options;
+    const std::size_t        m_options;
     const process_buffer     m_proc;
     std::size_t              m_shift_after;
     std::unique_ptr<io_base> m_logfile;
@@ -614,7 +614,7 @@ session::session(
      const std::string &path
     ,const std::string &name
     ,std::size_t volume_size
-    ,std::uint32_t opts
+    ,std::size_t opts
     ,process_buffer proc
 )
     :pimpl(new impl(path, name, volume_size, opts, std::move(proc)))
@@ -626,6 +626,7 @@ session::~session()
 /***************************************************************************/
 
 const std::string& session::name() const { return pimpl->m_name; }
+std::size_t session::flags() const { return pimpl->m_options; }
 void session::to_term(const bool ok, const std::string &pref) { pimpl->to_term(ok, pref); }
 void session::set_level(const level lvl) { pimpl->m_level = lvl; }
 level session::get_level() const { return pimpl->m_level; }
