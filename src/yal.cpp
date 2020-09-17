@@ -627,6 +627,7 @@ session::~session()
 
 const std::string& session::name() const { return pimpl->m_name; }
 std::size_t session::flags() const { return pimpl->m_options; }
+std::size_t session::volume_size() const { return pimpl->m_volume_size; }
 void session::to_term(const bool ok, const std::string &pref) { pimpl->to_term(ok, pref); }
 void session::set_level(const level lvl) { pimpl->m_level = lvl; }
 level session::get_level() const { return pimpl->m_level; }

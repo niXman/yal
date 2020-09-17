@@ -97,6 +97,7 @@ struct session {
 
     const std::string& name() const;
     std::size_t flags() const;
+    std::size_t volume_size() const;
 
     void to_term(const bool ok, const std::string &pref);
 
@@ -279,6 +280,8 @@ constexpr std::size_t __yal_strlen(const char *s, std::size_t len = 0) {
 
 #   define YAL_SESSION_GET_FLAGS(log) \
         log->flags()
+#   define YAL_SESSION_GET_VOLUME_SIZE(log) \
+        log->volume_size()
 
 #   define YAL_SESSION_FLUSH(log) \
         log->flush()
@@ -403,6 +406,7 @@ constexpr std::size_t __yal_strlen(const char *s, std::size_t len = 0) {
 #   define YAL_SESSION_EXISTS(name)
 
 #   define YAL_SESSION_GET_FLAGS(log)
+#   define YAL_SESSION_GET_VOLUME_SIZE(log)
 
 #   define YAL_SESSION_FLUSH(log)
 

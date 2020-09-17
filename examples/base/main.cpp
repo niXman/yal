@@ -48,6 +48,7 @@ int main() {
             [](const char *ptr, std::size_t size) { return std::make_pair(ptr, size); }
         );
         YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test1) == (yal::sec_res|yal::create_index_file));
+        YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_VOLUME_SIZE(test1) == 1024*1024);
 
         YAL_SESSION_CREATE(test2, s2name, 1024*1024, yal::usec_res|yal::compress);
         YAL_ASSERT_TERM(std::cerr, YAL_SESSION_GET_FLAGS(test2) == (yal::usec_res|yal::compress));
